@@ -11,7 +11,7 @@ def register_error_handlers(app: Flask) -> None:
     def bad_request(error: HTTPException | Exception) -> tuple[Response, int]:
         payload: dict[str, Any] = {
             "error": "bad_request",
-            "message": str(getattr(error, "description", "Bad request.")),
+            "message": "Bad request or malformed payload.",
         }
         return jsonify(payload), 400
 
@@ -44,6 +44,6 @@ def register_error_handlers(app: Flask) -> None:
         code = error.code if error.code is not None else 500
         payload: dict[str, Any] = {
             "error": error.name.lower().replace(" ", "_"),
-            "message": error.description,
+            "message": error.description or "HTTP error occurred.",
         }
         return jsonify(payload), code

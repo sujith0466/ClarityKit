@@ -18,6 +18,10 @@ class Config:
     TESTING: bool = False
     SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
 
+    # Authentication & JWT Configuration
+    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_EXPIRATION_SECONDS: int = int(os.getenv("JWT_EXPIRATION_SECONDS", "3600"))
+
     # Restrictive CORS: explicit origins only
     ALLOWED_ORIGINS: list[str] = parse_allowed_origins()
 
@@ -36,6 +40,8 @@ class TestingConfig(Config):
     TESTING: bool = True
     DEBUG: bool = True
     ALLOWED_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    SECRET_KEY: str = "dev-secret-key-change-in-production"
+    JWT_EXPIRATION_SECONDS: int = 3600
 
 
 class ProductionConfig(Config):

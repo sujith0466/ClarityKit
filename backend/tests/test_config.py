@@ -17,6 +17,8 @@ def test_default_config_values() -> None:
     assert isinstance(config.ALLOWED_ORIGINS, list)
     assert len(config.ALLOWED_ORIGINS) > 0
     assert config.SECRET_KEY is not None
+    assert config.JWT_ALGORITHM == "HS256"
+    assert config.JWT_EXPIRATION_SECONDS == 3600
 
 
 def test_development_config_values() -> None:
@@ -34,6 +36,7 @@ def test_testing_config_values() -> None:
     assert config.TESTING is True
     assert config.DEBUG is True
     assert "http://localhost:5173" in config.ALLOWED_ORIGINS
+    assert config.JWT_EXPIRATION_SECONDS == 3600
 
 
 def test_production_config_values() -> None:

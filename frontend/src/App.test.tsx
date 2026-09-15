@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import App from "./App";
 
 describe("ClarityKit App Shell Smoke Test", () => {
@@ -27,19 +27,47 @@ describe("ClarityKit App Shell Smoke Test", () => {
     const mainSection = screen.getByRole("main");
     expect(mainSection).toBeInTheDocument();
 
-    const foundationHeading = screen.getByRole("heading", {
+    const securityHeading = screen.getByRole("heading", {
       level: 2,
-      name: /project foundation/i,
+      name: /security & authentication/i,
     });
-    expect(foundationHeading).toBeInTheDocument();
+    expect(securityHeading).toBeInTheDocument();
 
     // Verify placeholder status
     const statusPlaceholder = screen.getByTestId("backend-status-placeholder");
     expect(statusPlaceholder).toBeInTheDocument();
-    expect(statusPlaceholder).toHaveTextContent(/backend status:/i);
+    expect(statusPlaceholder).toHaveTextContent(/security boundary:/i);
 
     // Verify footer contentinfo
     const footer = screen.getByRole("contentinfo");
     expect(footer).toBeInTheDocument();
+
+    // Verify login form is default
+    expect(
+      screen.getByRole("heading", { name: /sign in to claritykit/i })
+    ).toBeInTheDocument();
+  });
+
+  it("toggles between sign in and create account forms", () => {
+    render(<App />);
+
+    // Click Create Account button
+    const createAccountBtn = screen.getByRole("button", {
+      name: /create account/i,
+    });
+    fireEvent.click(createAccountBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /create claritykit account/i })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+
+    // Click Sign In button
+    const signInBtn = screen.getByRole("button", { name: /sign in/i });
+    fireEvent.click(signInBtn);
+
+    expect(
+      screen.getByRole("heading", { name: /sign in to claritykit/i })
+    ).toBeInTheDocument();
   });
 });
