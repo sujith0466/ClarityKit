@@ -8,35 +8,40 @@
 
 ---
 
-## Current Status: Phase 3 — Secure Document Ingestion
- 
-Phase 3 establishes secure document intake, PDF verification, namespaced storage, and tenant-isolated document management:
-- **Strict PDF Ingestion & Validation**: Rejects non-PDFs, empty files, files >20 MB, enforces `%PDF-` magic byte inspection, sanitizes filenames against traversal and control characters, and calculates SHA-256 digests.
-- **Namespaced Storage Engine**: Pluggable `StorageService` interface with `LocalStorageService` implementing strict canonical storage containment (`users/<user_id>/documents/<doc_id>.pdf`) to completely prevent path traversal attacks.
-- **Tenant-Isolated Document API**: Strict ownership enforcement (`@require_auth`, `@require_ownership`). Document requests from unauthenticated callers return `401`, while requests for non-existent or cross-tenant documents return `404` (never leaking existence).
-- **Atomic Failure Handling & Lifecycle State Machine**: Clean state progression (`uploading` → `queued` → `processing` → `ready` / `failed` / `deleting` → `deleted`) with storage rollback on upload failures and metadata cleanup on deletion.
-- **Accessible Frontend Intake Shell**: Dropzone & file picker with client validation, progress feedback, document list with size formatting, status badges, and deletion confirmation.
-- **Comprehensive Quality & Security Test Suite**: 60 backend tests (including 15 dedicated upload security attack tests) and 22 frontend tests covering positive intake, cross-user IDOR, traversal, spoofing, oversized payloads, and UI components.
- 
+## Current Status: Phase 4 — Document Processing & OCR
+
+Phase 4 establishes page-level legal document extraction, selective OCR fallback, conservative text normalization, and evidence-traceable page models:
+- **Page-Aware Domain Model**: Deterministic `DocumentPage` entities capturing `document_id`, 1-indexed `page_number`, normalized `text`, `extraction_method` (`native` vs `ocr`), `char_count`, `word_count`, and `ocr_required` flag.
+- **Native PDF Text Extraction & Scanned Detection**: High-performance native extraction via `pypdf` with heuristic meaningful-character threshold detection to identify scanned/image pages.
+- **Selective OCR Fallback Pipeline**: Pluggable `OCRProvider` interface (`TesseractOCRProvider`, `MockOCRProvider`) with safe image extraction and automatic cleanup of memory/temp files.
+- **Legal-Safe Text Normalization**: Deterministic normalization preserving legal phrasing, section numbering, monetary symbols, dates, and indentation while stripping null bytes and invalid control characters.
+- **Idempotent Page Repository & Lifecycle**: Re-processing replaces existing pages idempotently; document deletion cascades to remove extracted page metadata.
+- **Strict Security & IDOR Enforcement**: All processing and page retrieval endpoints strictly require authentication (`@require_auth`) and verify document ownership (`@require_ownership`), returning HTTP 404 for unowned or missing documents.
+- **Interactive Frontend Page Inspection**: Document list with dynamic status badges, "Process" action for queued documents, and expandable page inspection drawer with page text previews and extraction method tags.
+- **Full Test Coverage & Gate**: 75 backend tests and 25 frontend tests verifying end-to-end processing, native extraction, OCR fallback, DoS limits (page limits, corrupted streams), cross-tenant isolation, and UI interactions.
+
 > [!NOTE]
-> Phase 3 is document ingestion and storage infrastructure only. Text extraction, OCR, PDF parsing, vector embeddings, pgvector, and LLM reasoning will be introduced in subsequent phases according to the Master Plan.
- 
+> Phase 4 handles document processing and OCR extraction only. Embeddings, vector databases, chunking for retrieval, LLM reasoning, and legal clause classification will be introduced in subsequent phases according to the Master Plan.
+
 ---
- 
+
 ## Security Architecture & API Endpoints
- 
+
 ### Authentication Endpoints
 - `POST /api/auth/register` — Register new user account (`email`, `password`, `name`).
 - `POST /api/auth/login` — Authenticate user and receive JWT token (`email`, `password`).
 - `POST /api/auth/logout` — Acknowledge session termination.
 - `GET /api/auth/me` — Retrieve authenticated user profile (requires `Authorization: Bearer <token>`).
- 
-### Document Ingestion Endpoints
+
+### Document Ingestion & Processing Endpoints
 - `POST /api/documents` — Securely upload a PDF file (multipart/form-data with `file` field).
 - `GET /api/documents` — List all active documents owned by the authenticated user.
 - `GET /api/documents/<document_id>` — Retrieve document metadata (strictly verifies ownership, 404 for cross-tenant/missing).
 - `DELETE /api/documents/<document_id>` — Delete document file and metadata (strictly verifies ownership, 404 for cross-tenant/missing).
- 
+- `POST /api/documents/<document_id>/process` — Trigger synchronous extraction & OCR processing on uploaded document.
+- `GET /api/documents/<document_id>/pages` — Retrieve ordered extracted pages with text, method, and statistics.
+- `GET /api/documents/<document_id>/processing` — Retrieve processing summary (status, page counts, OCR counts).
+
 ### Authorization & IDOR Policy
 - **Unauthenticated access to protected resource** → `HTTP 401 Unauthorized`
 - **Authenticated access to nonexistent resource** → `HTTP 404 Not Found`

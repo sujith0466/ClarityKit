@@ -25,6 +25,16 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
+    def update_status(
+        self,
+        document_id: str,
+        status: DocumentStatus,
+        error_message: str | None = None,
+    ) -> Document | None:
+        """Update the processing status of a document."""
+        pass
+
+    @abstractmethod
     def delete(self, document_id: str) -> bool:
         """Mark document as deleted or remove from repository."""
         pass
@@ -63,6 +73,19 @@ class InMemoryDocumentRepository(DocumentRepository):
             # Sort newest first
             return sorted(docs, key=lambda d: d.created_at, reverse=True)
 
+    def update_status(
+        self,
+        document_id: str,
+        status: DocumentStatus,
+        error_message: str | None = None,
+    ) -> Document | None:
+        with self._lock:
+            doc = self._documents_by_id.get(document_id)
+            if doc:
+                doc.status = status
+                doc.error_message = error_message
+            return doc
+
     def delete(self, document_id: str) -> bool:
         with self._lock:
             if document_id in self._documents_by_id:
@@ -77,7 +100,8 @@ class InMemoryDocumentRepository(DocumentRepository):
 
 
 # Default singleton repository
-_default_document_repository: DocumentRepository = InMemoryDocumentRepository()
+in_memory_document_repository = InMemoryDocumentRepository()
+_default_document_repository: DocumentRepository = in_memory_document_repository
 
 
 def get_document_repository() -> DocumentRepository:

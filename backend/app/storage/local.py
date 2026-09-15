@@ -104,7 +104,8 @@ class LocalStorageService(StorageService):
 
 
 # Default singleton storage service instance
-_default_storage_service: StorageService = LocalStorageService()
+default_storage_service: StorageService = LocalStorageService()
+_default_storage_service: StorageService = default_storage_service
 
 
 def get_storage_service() -> StorageService:

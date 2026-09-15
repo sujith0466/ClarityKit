@@ -12,6 +12,13 @@ from app.documents.validation import (
     InvalidFileTypeError,
     MissingFileError,
 )
+from app.processing.models import (
+    CorruptDocumentError,
+    InvalidDocumentStateError,
+    PageLimitExceededError,
+    ProcessingError,
+)
+from app.processing.service import default_processing_service
 
 documents_bp = Blueprint("documents", __name__, url_prefix="/api/documents")
 
@@ -171,3 +178,129 @@ def delete_document(document_id: str) -> tuple[Response, int]:
         ),
         200,
     )
+
+
+@documents_bp.route("/<document_id>/process", methods=["POST"])
+@require_auth
+def process_document(document_id: str) -> tuple[Response, int]:
+    """Trigger processing and text extraction for an owned document."""
+    current_user: User | None = get_current_user()
+    if current_user is None:
+        return (
+            jsonify({"error": "unauthorized", "message": "Authentication required."}),
+            401,
+        )
+
+    # First verify document exists and is owned by caller
+    doc_service = DocumentService()
+    doc = doc_service.get_document(
+        user_id=current_user.user_id,
+        document_id=document_id,
+    )
+    if doc is None:
+        return (
+            jsonify(
+                {
+                    "error": "not_found",
+                    "message": "The requested document was not found.",
+                }
+            ),
+            404,
+        )
+
+    processing_service = default_processing_service
+    try:
+        pages = processing_service.process_document(
+            user_id=current_user.user_id,
+            document_id=document_id,
+        )
+    except InvalidDocumentStateError as e:
+        return jsonify({"error": "invalid_state", "message": str(e)}), 400
+    except CorruptDocumentError as e:
+        return jsonify({"error": "corrupt_document", "message": str(e)}), 422
+    except PageLimitExceededError as e:
+        return jsonify({"error": "page_limit_exceeded", "message": str(e)}), 413
+    except ProcessingError as e:
+        return jsonify({"error": "processing_failed", "message": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "internal_server_error", "message": str(e)}), 500
+
+    payload: dict[str, Any] = {
+        "status": "success",
+        "document_id": document_id,
+        "page_count": len(pages),
+        "pages": [p.to_dict() for p in pages],
+    }
+    return jsonify(payload), 200
+
+
+@documents_bp.route("/<document_id>/pages", methods=["GET"])
+@require_auth
+def get_document_pages(document_id: str) -> tuple[Response, int]:
+    """Retrieve extracted page records for an owned document."""
+    current_user: User | None = get_current_user()
+    if current_user is None:
+        return (
+            jsonify({"error": "unauthorized", "message": "Authentication required."}),
+            401,
+        )
+
+    processing_service = default_processing_service
+    pages = processing_service.get_document_pages(
+        user_id=current_user.user_id,
+        document_id=document_id,
+    )
+
+    if pages is None:
+        return (
+            jsonify(
+                {
+                    "error": "not_found",
+                    "message": "The requested document was not found.",
+                }
+            ),
+            404,
+        )
+
+    payload: dict[str, Any] = {
+        "status": "success",
+        "document_id": document_id,
+        "count": len(pages),
+        "pages": [p.to_dict() for p in pages],
+    }
+    return jsonify(payload), 200
+
+
+@documents_bp.route("/<document_id>/processing", methods=["GET"])
+@require_auth
+def get_document_processing_status(document_id: str) -> tuple[Response, int]:
+    """Retrieve processing status and summary for an owned document."""
+    current_user: User | None = get_current_user()
+    if current_user is None:
+        return (
+            jsonify({"error": "unauthorized", "message": "Authentication required."}),
+            401,
+        )
+
+    processing_service = default_processing_service
+    summary = processing_service.get_processing_summary(
+        user_id=current_user.user_id,
+        document_id=document_id,
+    )
+
+    if summary is None:
+        return (
+            jsonify(
+                {
+                    "error": "not_found",
+                    "message": "The requested document was not found.",
+                }
+            ),
+            404,
+        )
+
+    payload: dict[str, Any] = {
+        "status": "success",
+        "processing": summary,
+    }
+    return jsonify(payload), 200

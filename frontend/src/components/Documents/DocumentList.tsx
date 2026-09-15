@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { DocumentItem } from "../../types/document";
+import { DocumentItem, DocumentPage } from "../../types/document";
+import { useAuth } from "../../context/useAuth";
 
 interface DocumentListProps {
   documents: readonly DocumentItem[];
@@ -7,6 +8,7 @@ interface DocumentListProps {
   error: string | null;
   onRefresh: () => void;
   onDeleteDocument: (documentId: string) => Promise<void>;
+  onProcessDocument?: (documentId: string) => Promise<void>;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -15,9 +17,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   error,
   onRefresh,
   onDeleteDocument,
+  onProcessDocument,
 }) => {
+  const { token } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
+  const [pagesLoading, setPagesLoading] = useState<boolean>(false);
+  const [docPages, setDocPages] = useState<readonly DocumentPage[]>([]);
+  const [pagesError, setPagesError] = useState<string | null>(null);
 
   const formatFileSize = (bytes: number): string => {
     if (bytes < 1024) return `${bytes} B`;
@@ -45,10 +54,66 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     try {
       await onDeleteDocument(id);
       setConfirmDeleteId(null);
+      if (expandedDocId === id) {
+        setExpandedDocId(null);
+        setDocPages([]);
+      }
     } finally {
       setDeletingId(null);
     }
   };
+
+  const handleProcess = async (id: string) => {
+    if (!onProcessDocument) return;
+    setProcessingId(id);
+    try {
+      await onProcessDocument(id);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleTogglePages = async (docId: string) => {
+    if (expandedDocId === docId) {
+      setExpandedDocId(null);
+      setDocPages([]);
+      setPagesError(null);
+      return;
+    }
+
+    setExpandedDocId(docId);
+    setPagesLoading(true);
+    setPagesError(null);
+
+    try {
+      const res = await fetch(`/api/documents/${docId}/pages`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setPagesError(data.message || "Failed to load document pages.");
+        setDocPages([]);
+        return;
+      }
+
+      const data = await res.json();
+      setDocPages(data.pages || []);
+    } catch {
+      setPagesError("Network error while retrieving pages.");
+      setDocPages([]);
+    } finally {
+      setPagesLoading(false);
+    }
+  };
+
+  const isReady = (status: string) => status.toLowerCase() === "ready";
+  const isProcessable = (status: string) =>
+    ["queued", "failed"].includes(status.toLowerCase());
+  const isProcessing = (status: string, id: string) =>
+    status.toLowerCase() === "processing" || processingId === id;
 
   return (
     <section
@@ -107,59 +172,159 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </thead>
             <tbody>
               {documents.map((doc) => (
-                <tr key={doc.id} data-testid={`document-row-${doc.id}`}>
-                  <td>
-                    <div className="doc-name-cell">
-                      <span className="doc-icon" aria-hidden="true">
-                        📄
-                      </span>
-                      <strong className="doc-filename">{doc.filename}</strong>
-                    </div>
-                  </td>
-                  <td>{formatFileSize(doc.size_bytes)}</td>
-                  <td>
-                    <span
-                      className={`status-badge status-${doc.status}`}
-                      data-testid={`status-badge-${doc.id}`}
-                    >
-                      {doc.status}
-                    </span>
-                  </td>
-                  <td>{formatDate(doc.created_at)}</td>
-                  <td>
-                    {confirmDeleteId === doc.id ? (
-                      <div className="confirm-actions">
-                        <button
-                          type="button"
-                          className="btn-danger-confirm"
-                          onClick={() => handleDelete(doc.id)}
-                          disabled={deletingId === doc.id}
-                          aria-label={`Confirm delete ${doc.filename}`}
-                        >
-                          {deletingId === doc.id ? "Deleting..." : "Confirm"}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-cancel"
-                          onClick={() => setConfirmDeleteId(null)}
-                          disabled={deletingId === doc.id}
-                        >
-                          Cancel
-                        </button>
+                <React.Fragment key={doc.id}>
+                  <tr data-testid={`document-row-${doc.id}`}>
+                    <td>
+                      <div className="doc-name-cell">
+                        <span className="doc-icon" aria-hidden="true">
+                          📄
+                        </span>
+                        <strong className="doc-filename">{doc.filename}</strong>
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn-delete"
-                        onClick={() => setConfirmDeleteId(doc.id)}
-                        disabled={deletingId === doc.id}
-                        aria-label={`Delete ${doc.filename}`}
+                    </td>
+                    <td>{formatFileSize(doc.size_bytes)}</td>
+                    <td>
+                      <span
+                        className={`status-badge status-${doc.status.toLowerCase()}`}
+                        data-testid={`status-badge-${doc.id}`}
                       >
-                        Delete
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                        {isProcessing(doc.status, doc.id)
+                          ? "PROCESSING"
+                          : doc.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td>{formatDate(doc.created_at)}</td>
+                    <td>
+                      <div className="table-row-actions">
+                        {isProcessable(doc.status) && (
+                          <button
+                            type="button"
+                            className="btn-primary-sm"
+                            onClick={() => handleProcess(doc.id)}
+                            disabled={isProcessing(doc.status, doc.id)}
+                            data-testid={`process-btn-${doc.id}`}
+                            aria-label={`Process document ${doc.filename}`}
+                          >
+                            {isProcessing(doc.status, doc.id)
+                              ? "Processing..."
+                              : "Process"}
+                          </button>
+                        )}
+
+                        {isReady(doc.status) && (
+                          <button
+                            type="button"
+                            className="btn-secondary-sm"
+                            onClick={() => handleTogglePages(doc.id)}
+                            data-testid={`view-pages-btn-${doc.id}`}
+                            aria-label={`View extracted pages for ${doc.filename}`}
+                          >
+                            {expandedDocId === doc.id
+                              ? "Hide Pages"
+                              : "View Pages"}
+                          </button>
+                        )}
+
+                        {confirmDeleteId === doc.id ? (
+                          <div className="confirm-actions">
+                            <button
+                              type="button"
+                              className="btn-danger-confirm"
+                              onClick={() => handleDelete(doc.id)}
+                              disabled={deletingId === doc.id}
+                              aria-label={`Confirm delete ${doc.filename}`}
+                            >
+                              {deletingId === doc.id
+                                ? "Deleting..."
+                                : "Confirm"}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-cancel"
+                              onClick={() => setConfirmDeleteId(null)}
+                              disabled={deletingId === doc.id}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-delete"
+                            onClick={() => setConfirmDeleteId(doc.id)}
+                            disabled={deletingId === doc.id}
+                            aria-label={`Delete ${doc.filename}`}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+
+                  {expandedDocId === doc.id && (
+                    <tr
+                      className="expanded-pages-row"
+                      data-testid={`pages-panel-${doc.id}`}
+                    >
+                      <td colSpan={5}>
+                        <div className="pages-inspection-container">
+                          <h4>
+                            Extracted Pages for <em>{doc.filename}</em>
+                          </h4>
+                          {pagesLoading ? (
+                            <p data-testid="pages-loading">
+                              Loading extracted pages...
+                            </p>
+                          ) : pagesError ? (
+                            <div
+                              className="auth-error-banner"
+                              data-testid="pages-error"
+                            >
+                              {pagesError}
+                            </div>
+                          ) : docPages.length === 0 ? (
+                            <p data-testid="pages-empty">
+                              No pages extracted for this document.
+                            </p>
+                          ) : (
+                            <div
+                              className="pages-list"
+                              data-testid="pages-grid"
+                            >
+                              {docPages.map((page) => (
+                                <div
+                                  key={page.page_id}
+                                  className="page-item-card"
+                                  data-testid={`page-card-${page.page_number}`}
+                                >
+                                  <div className="page-item-header">
+                                    <span className="page-number-tag">
+                                      Page {page.page_number}
+                                    </span>
+                                    <span
+                                      className={`method-badge method-${page.extraction_method.toLowerCase()}`}
+                                      data-testid={`page-method-${page.page_number}`}
+                                    >
+                                      {page.extraction_method.toUpperCase()}
+                                    </span>
+                                    <span className="page-meta-counts">
+                                      {page.word_count} words |{" "}
+                                      {page.char_count} chars
+                                    </span>
+                                  </div>
+                                  <div className="page-text-preview">
+                                    <pre>{page.text}</pre>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

@@ -33,12 +33,18 @@ class Document:
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
+    @property
+    def id(self) -> str:
+        """Alias for document_id."""
+        return self.document_id
+
     def to_dict(self) -> dict[str, Any]:
         """Return safe, sanitized metadata representation for API clients.
 
         Internal storage paths and filesystem keys are excluded.
         """
         return {
+            "id": self.document_id,
             "document_id": self.document_id,
             "user_id": self.user_id,
             "filename": self.filename,

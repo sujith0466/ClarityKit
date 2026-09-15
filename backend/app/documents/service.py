@@ -104,5 +104,13 @@ class DocumentService:
         # Remove from storage
         self._storage.delete(doc.storage_key)
 
+        # Cleanup page extractions if any
+        try:
+            from app.processing.repository import in_memory_page_repository
+
+            in_memory_page_repository.delete_pages_by_document(document_id)
+        except Exception:
+            pass
+
         # Mark deleted in repository
         return self._repository.delete(document_id)

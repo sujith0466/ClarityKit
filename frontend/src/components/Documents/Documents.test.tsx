@@ -165,7 +165,7 @@ describe("DocumentUpload Component", () => {
 
 describe("DocumentList Component", () => {
   it("renders empty state when documents list is empty", () => {
-    render(
+    renderWithAuth(
       <DocumentList
         documents={[]}
         isLoading={false}
@@ -181,7 +181,7 @@ describe("DocumentList Component", () => {
   });
 
   it("renders document items with metadata and status badges", () => {
-    render(
+    renderWithAuth(
       <DocumentList
         documents={[sampleDocument]}
         isLoading={false}
@@ -194,14 +194,14 @@ describe("DocumentList Component", () => {
     expect(screen.getByText("lease_agreement.pdf")).toBeInTheDocument();
     expect(screen.getByText("1.0 MB")).toBeInTheDocument();
     expect(screen.getByTestId("status-badge-doc-uuid-1234")).toHaveTextContent(
-      "ready"
+      "READY"
     );
   });
 
   it("handles confirmation before deleting document", async () => {
     const onDelete = vi.fn().mockResolvedValue(undefined);
 
-    render(
+    renderWithAuth(
       <DocumentList
         documents={[sampleDocument]}
         isLoading={false}
@@ -224,6 +224,94 @@ describe("DocumentList Component", () => {
 
     await userEvent.click(confirmBtn);
     expect(onDelete).toHaveBeenCalledWith("doc-uuid-1234");
+  });
+
+  it("renders process button for queued document and handles trigger", async () => {
+    const onProcess = vi.fn().mockResolvedValue(undefined);
+    const queuedDoc: DocumentItem = {
+      ...sampleDocument,
+      id: "doc-queued-1",
+      status: "queued",
+    };
+
+    renderWithAuth(
+      <DocumentList
+        documents={[queuedDoc]}
+        isLoading={false}
+        error={null}
+        onRefresh={vi.fn()}
+        onDeleteDocument={vi.fn()}
+        onProcessDocument={onProcess}
+      />
+    );
+
+    const processBtn = screen.getByTestId("process-btn-doc-queued-1");
+    expect(processBtn).toBeInTheDocument();
+    expect(processBtn).toHaveTextContent("Process");
+
+    await userEvent.click(processBtn);
+    expect(onProcess).toHaveBeenCalledWith("doc-queued-1");
+  });
+
+  it("renders view pages button and expands extracted pages panel on click", async () => {
+    const mockPages = [
+      {
+        page_id: "page-1",
+        document_id: sampleDocument.id,
+        page_number: 1,
+        text: "Section 1: The Tenant shall pay rent monthly.",
+        extraction_method: "native" as const,
+        char_count: 45,
+        word_count: 8,
+        ocr_required: false,
+      },
+    ];
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "success",
+        count: 1,
+        pages: mockPages,
+      }),
+    });
+    globalThis.fetch = mockFetch;
+
+    renderWithAuth(
+      <DocumentList
+        documents={[sampleDocument]}
+        isLoading={false}
+        error={null}
+        onRefresh={vi.fn()}
+        onDeleteDocument={vi.fn()}
+      />
+    );
+
+    const viewPagesBtn = screen.getByTestId("view-pages-btn-doc-uuid-1234");
+    expect(viewPagesBtn).toBeInTheDocument();
+    expect(viewPagesBtn).toHaveTextContent("View Pages");
+
+    await userEvent.click(viewPagesBtn);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        `/api/documents/${sampleDocument.id}/pages`,
+        { headers: { Authorization: "Bearer valid-mock-jwt" } }
+      );
+    });
+
+    expect(
+      await screen.findByTestId("pages-panel-doc-uuid-1234")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Page 1")).toBeInTheDocument();
+    expect(screen.getByTestId("page-method-1")).toHaveTextContent("NATIVE");
+    expect(screen.getByText(/Section 1: The Tenant/)).toBeInTheDocument();
+
+    // Clicking again collapses the panel
+    await userEvent.click(viewPagesBtn);
+    expect(
+      screen.queryByTestId("pages-panel-doc-uuid-1234")
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -252,5 +340,59 @@ describe("DocumentsManager Integration", () => {
     });
 
     expect(await screen.findByText("lease_agreement.pdf")).toBeInTheDocument();
+  });
+
+  it("triggers process API call when process is invoked", async () => {
+    const queuedDoc: DocumentItem = {
+      ...sampleDocument,
+      id: "doc-queued-2",
+      status: "queued",
+    };
+
+    const mockFetch = vi
+      .fn()
+      .mockImplementation((url: string, options?: RequestInit) => {
+        if (
+          url === "/api/documents" &&
+          (!options || !options.method || options.method === "GET")
+        ) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              status: "success",
+              count: 1,
+              documents: [queuedDoc],
+            }),
+          });
+        }
+        if (url === "/api/documents/doc-queued-2/process") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              status: "success",
+              document_id: "doc-queued-2",
+              page_count: 1,
+              pages: [],
+            }),
+          });
+        }
+        return Promise.reject(new Error("Unknown route"));
+      });
+    globalThis.fetch = mockFetch;
+
+    renderWithAuth(<DocumentsManager />);
+
+    const processBtn = await screen.findByTestId("process-btn-doc-queued-2");
+    await userEvent.click(processBtn);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/documents/doc-queued-2/process",
+        expect.objectContaining({
+          method: "POST",
+          headers: { Authorization: "Bearer valid-mock-jwt" },
+        })
+      );
+    });
   });
 });

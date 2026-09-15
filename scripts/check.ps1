@@ -6,7 +6,7 @@ Push-Location "backend"
 try {
     & .venv\Scripts\ruff check .
     & .venv\Scripts\ruff format --check .
-    & .venv\Scripts\mypy app
+    & .venv\Scripts\mypy app tests
     & .venv\Scripts\pytest
 } finally {
     Pop-Location

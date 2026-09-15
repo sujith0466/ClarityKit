@@ -75,6 +75,34 @@ export const DocumentsManager: React.FC = () => {
     }
   };
 
+  const handleProcessDocument = async (documentId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}/process`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || "Failed to process document.");
+        return;
+      }
+
+      // Update document status locally to READY
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.id === documentId ? { ...doc, status: "ready" as const } : doc
+        )
+      );
+    } catch {
+      setError("Network error while triggering document processing.");
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -88,6 +116,7 @@ export const DocumentsManager: React.FC = () => {
         error={error}
         onRefresh={fetchDocuments}
         onDeleteDocument={handleDeleteDocument}
+        onProcessDocument={handleProcessDocument}
       />
     </div>
   );
