@@ -10,6 +10,8 @@ interface DocumentListProps {
   onDeleteDocument: (documentId: string) => Promise<void>;
   onProcessDocument?: (documentId: string) => Promise<void>;
   onIndexDocument?: (documentId: string) => Promise<void>;
+  onExtractDocument?: (documentId: string) => Promise<void>;
+  onViewUnderstanding?: (documentId: string, filename: string) => Promise<void>;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -20,12 +22,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onDeleteDocument,
   onProcessDocument,
   onIndexDocument,
+  onExtractDocument,
+  onViewUnderstanding,
 }) => {
   const { token } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [indexingId, setIndexingId] = useState<string | null>(null);
+  const [extractingId, setExtractingId] = useState<string | null>(null);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
   const [pagesLoading, setPagesLoading] = useState<boolean>(false);
   const [docPages, setDocPages] = useState<readonly DocumentPage[]>([]);
@@ -83,6 +88,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
       await onIndexDocument(id);
     } finally {
       setIndexingId(null);
+    }
+  };
+
+  const handleExtract = async (id: string) => {
+    if (!onExtractDocument) return;
+    setExtractingId(id);
+    try {
+      await onExtractDocument(id);
+    } finally {
+      setExtractingId(null);
     }
   };
 
@@ -237,6 +252,33 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                             >
                               {isIndexing(doc.id) ? "Indexing..." : "Index"}
                             </button>
+                            {onExtractDocument && (
+                              <button
+                                type="button"
+                                className="btn-primary-sm btn-extract"
+                                onClick={() => handleExtract(doc.id)}
+                                disabled={extractingId === doc.id}
+                                data-testid={`extract-btn-${doc.id}`}
+                                aria-label={`Extract understanding for ${doc.filename}`}
+                              >
+                                {extractingId === doc.id
+                                  ? "Extracting..."
+                                  : "Extract"}
+                              </button>
+                            )}
+                            {onViewUnderstanding && (
+                              <button
+                                type="button"
+                                className="btn-secondary-sm"
+                                onClick={() =>
+                                  onViewUnderstanding(doc.id, doc.filename)
+                                }
+                                data-testid={`view-understanding-btn-${doc.id}`}
+                                aria-label={`View understanding for ${doc.filename}`}
+                              >
+                                Understanding
+                              </button>
+                            )}
                             <button
                               type="button"
                               className="btn-secondary-sm"

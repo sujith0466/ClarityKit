@@ -1,15 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/useAuth";
 import { DocumentItem, DocumentListResponse } from "../../types/document";
+import {
+  DocumentUnderstanding,
+  DocumentUnderstandingResponse,
+} from "../../types/extraction";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentList } from "./DocumentList";
 import { RetrievalSearch } from "./RetrievalSearch";
+import { DocumentUnderstandingView } from "./DocumentUnderstandingView";
 
 export const DocumentsManager: React.FC = () => {
   const { token, isAuthenticated } = useAuth();
   const [documents, setDocuments] = useState<readonly DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeUnderstanding, setActiveUnderstanding] =
+    useState<DocumentUnderstanding | null>(null);
+  const [activeDocFilename, setActiveDocFilename] = useState<string>("");
 
   const fetchDocuments = useCallback(async () => {
     if (!token || !isAuthenticated) return;
@@ -71,6 +79,10 @@ export const DocumentsManager: React.FC = () => {
       }
 
       setDocuments((prev) => prev.filter((d) => d.id !== documentId));
+      if (activeUnderstanding?.document_id === documentId) {
+        setActiveUnderstanding(null);
+        setActiveDocFilename("");
+      }
     } catch {
       setError("Network error while deleting document.");
     }
@@ -125,6 +137,72 @@ export const DocumentsManager: React.FC = () => {
     }
   };
 
+  const handleExtractDocument = async (documentId: string) => {
+    if (!token) return;
+
+    setError(null);
+    try {
+      const response = await fetch(`/api/documents/${documentId}/extract`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = (await response.json()) as DocumentUnderstandingResponse & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(data.message || "Structured extraction failed.");
+        return;
+      }
+
+      const doc = documents.find((d) => d.id === documentId);
+      setActiveDocFilename(doc?.filename || documentId);
+      setActiveUnderstanding(data.understanding);
+    } catch {
+      setError("Network error while extracting document understanding.");
+    }
+  };
+
+  const handleViewUnderstanding = async (
+    documentId: string,
+    filename: string
+  ) => {
+    if (!token) return;
+
+    setError(null);
+    try {
+      const response = await fetch(
+        `/api/documents/${documentId}/understanding`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = (await response.json()) as DocumentUnderstandingResponse & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "No structured understanding found. Please run 'Extract' first."
+        );
+        return;
+      }
+
+      setActiveDocFilename(filename);
+      setActiveUnderstanding(data.understanding);
+    } catch {
+      setError("Network error while fetching document understanding.");
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -140,7 +218,19 @@ export const DocumentsManager: React.FC = () => {
         onDeleteDocument={handleDeleteDocument}
         onProcessDocument={handleProcessDocument}
         onIndexDocument={handleIndexDocument}
+        onExtractDocument={handleExtractDocument}
+        onViewUnderstanding={handleViewUnderstanding}
       />
+      {activeUnderstanding && (
+        <DocumentUnderstandingView
+          understanding={activeUnderstanding}
+          documentFilename={activeDocFilename}
+          onClose={() => {
+            setActiveUnderstanding(null);
+            setActiveDocFilename("");
+          }}
+        />
+      )}
       <RetrievalSearch />
     </div>
   );

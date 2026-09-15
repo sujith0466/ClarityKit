@@ -8,6 +8,7 @@ from app.config import Config, DevelopmentConfig, ProductionConfig, TestingConfi
 from app.errors import register_error_handlers
 from app.routes.auth import auth_bp
 from app.routes.documents import documents_bp
+from app.routes.extraction import extraction_bp
 from app.routes.health import health_bp
 from app.routes.retrieval import retrieval_bp
 
@@ -42,5 +43,6 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(auth_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(retrieval_bp)
+    app.register_blueprint(extraction_bp)
 
     return app
