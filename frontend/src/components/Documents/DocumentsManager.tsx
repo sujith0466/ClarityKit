@@ -1,0 +1,94 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../context/useAuth";
+import { DocumentItem, DocumentListResponse } from "../../types/document";
+import { DocumentUpload } from "./DocumentUpload";
+import { DocumentList } from "./DocumentList";
+
+export const DocumentsManager: React.FC = () => {
+  const { token, isAuthenticated } = useAuth();
+  const [documents, setDocuments] = useState<readonly DocumentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchDocuments = useCallback(async () => {
+    if (!token || !isAuthenticated) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/documents", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = (await response.json()) as DocumentListResponse & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(data.message || "Failed to fetch documents.");
+        return;
+      }
+
+      setDocuments(data.documents);
+    } catch {
+      setError("Network error while fetching documents.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token, isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchDocuments();
+    } else {
+      setDocuments([]);
+    }
+  }, [isAuthenticated, token, fetchDocuments]);
+
+  const handleUploadSuccess = (newDoc: DocumentItem) => {
+    setDocuments((prev) => [newDoc, ...prev.filter((d) => d.id !== newDoc.id)]);
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || "Failed to delete document.");
+        return;
+      }
+
+      setDocuments((prev) => prev.filter((d) => d.id !== documentId));
+    } catch {
+      setError("Network error while deleting document.");
+    }
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="documents-section" data-testid="documents-manager">
+      <DocumentUpload onUploadSuccess={handleUploadSuccess} />
+      <DocumentList
+        documents={documents}
+        isLoading={isLoading}
+        error={error}
+        onRefresh={fetchDocuments}
+        onDeleteDocument={handleDeleteDocument}
+      />
+    </div>
+  );
+};

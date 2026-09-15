@@ -24,6 +24,10 @@ wheels/
 venv/
 ENV/
 
+# Local Storage / Data
+data/
+backend/data/
+
 # Testing & Linting caches
 .pytest_cache/
 .mypy_cache/

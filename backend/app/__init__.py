@@ -7,6 +7,7 @@ from flask_cors import CORS
 from app.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from app.errors import register_error_handlers
 from app.routes.auth import auth_bp
+from app.routes.documents import documents_bp
 from app.routes.health import health_bp
 
 # Load .env if present
@@ -38,5 +39,6 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     # Register blueprints
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(documents_bp)
 
     return app

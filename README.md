@@ -8,28 +8,35 @@
 
 ---
 
-## Current Status: Phase 2 — Authentication & Security Foundation
-
-Phase 2 establishes the identity, authentication, authorization, and tenant isolation boundaries:
-- **User Identity & Password Security**: Cryptographic password hashing (`scrypt` / `pbkdf2:sha256`), sanitized user entities, no password leakage in logs or responses.
-- **Stateless Authentication (JWT)**: HMAC-SHA256 signed tokens (`HS256`), strict expiration and signature verification, protected endpoints via `@require_auth`.
-- **Server-Side Authorization & IDOR Protection**: `@require_ownership` decorator enforcing that non-owned resources return `HTTP 404 Not Found` (never 403) to prevent resource existence enumeration.
-- **Frontend Security Shell**: Accessible login and registration forms, `AuthContext` state management, and protected component boundaries.
-- **Unified Quality & Security Test Suite**: 36 backend tests and 13 frontend tests covering positive authentication, attack simulations (IDOR, forged JWTs, ID substitutions), accessibility, and regression checks.
-
+## Current Status: Phase 3 — Secure Document Ingestion
+ 
+Phase 3 establishes secure document intake, PDF verification, namespaced storage, and tenant-isolated document management:
+- **Strict PDF Ingestion & Validation**: Rejects non-PDFs, empty files, files >20 MB, enforces `%PDF-` magic byte inspection, sanitizes filenames against traversal and control characters, and calculates SHA-256 digests.
+- **Namespaced Storage Engine**: Pluggable `StorageService` interface with `LocalStorageService` implementing strict canonical storage containment (`users/<user_id>/documents/<doc_id>.pdf`) to completely prevent path traversal attacks.
+- **Tenant-Isolated Document API**: Strict ownership enforcement (`@require_auth`, `@require_ownership`). Document requests from unauthenticated callers return `401`, while requests for non-existent or cross-tenant documents return `404` (never leaking existence).
+- **Atomic Failure Handling & Lifecycle State Machine**: Clean state progression (`uploading` → `queued` → `processing` → `ready` / `failed` / `deleting` → `deleted`) with storage rollback on upload failures and metadata cleanup on deletion.
+- **Accessible Frontend Intake Shell**: Dropzone & file picker with client validation, progress feedback, document list with size formatting, status badges, and deletion confirmation.
+- **Comprehensive Quality & Security Test Suite**: 60 backend tests (including 15 dedicated upload security attack tests) and 22 frontend tests covering positive intake, cross-user IDOR, traversal, spoofing, oversized payloads, and UI components.
+ 
 > [!NOTE]
-> Phase 2 is security infrastructure only. Legal document ingestion, PDF parsing, OCR, vector embeddings, pgvector, and LLM reasoning will be incrementally introduced in subsequent phases according to the Master Plan.
-
+> Phase 3 is document ingestion and storage infrastructure only. Text extraction, OCR, PDF parsing, vector embeddings, pgvector, and LLM reasoning will be introduced in subsequent phases according to the Master Plan.
+ 
 ---
-
+ 
 ## Security Architecture & API Endpoints
-
+ 
 ### Authentication Endpoints
 - `POST /api/auth/register` — Register new user account (`email`, `password`, `name`).
 - `POST /api/auth/login` — Authenticate user and receive JWT token (`email`, `password`).
 - `POST /api/auth/logout` — Acknowledge session termination.
 - `GET /api/auth/me` — Retrieve authenticated user profile (requires `Authorization: Bearer <token>`).
-
+ 
+### Document Ingestion Endpoints
+- `POST /api/documents` — Securely upload a PDF file (multipart/form-data with `file` field).
+- `GET /api/documents` — List all active documents owned by the authenticated user.
+- `GET /api/documents/<document_id>` — Retrieve document metadata (strictly verifies ownership, 404 for cross-tenant/missing).
+- `DELETE /api/documents/<document_id>` — Delete document file and metadata (strictly verifies ownership, 404 for cross-tenant/missing).
+ 
 ### Authorization & IDOR Policy
 - **Unauthenticated access to protected resource** → `HTTP 401 Unauthorized`
 - **Authenticated access to nonexistent resource** → `HTTP 404 Not Found`

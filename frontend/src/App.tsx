@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./context/useAuth";
 import { LoginForm } from "./components/Auth/LoginForm";
 import { RegisterForm } from "./components/Auth/RegisterForm";
+import { DocumentsManager } from "./components/Documents/DocumentsManager";
 import "./App.css";
 
 const AuthSection: React.FC = () => {
@@ -67,11 +68,10 @@ export const AppContent: React.FC = () => {
     <ErrorBoundary>
       <MainLayout>
         <section className="card" aria-labelledby="foundation-heading">
-          <h2 id="foundation-heading">Security & Authentication (Phase 2)</h2>
+          <h2 id="foundation-heading">Secure Document Ingestion (Phase 3)</h2>
           <p>
-            Authentication, authorization, and tenant isolation boundaries are
-            established. All resources enforce strict server-side ownership and
-            IDOR protection.
+            Secure intake, strict PDF signature validation, namespaced storage,
+            and tenant-isolated document management are established.
           </p>
 
           <div
@@ -79,11 +79,12 @@ export const AppContent: React.FC = () => {
             data-testid="backend-status-placeholder"
           >
             <span className="status-dot" aria-hidden="true" />
-            <span>Security boundary: Active & Protected</span>
+            <span>Document Ingestion: Active &amp; Protected</span>
           </div>
         </section>
 
         <AuthSection />
+        <DocumentsManager />
       </MainLayout>
     </ErrorBoundary>
   );

@@ -27,16 +27,16 @@ describe("ClarityKit App Shell Smoke Test", () => {
     const mainSection = screen.getByRole("main");
     expect(mainSection).toBeInTheDocument();
 
-    const securityHeading = screen.getByRole("heading", {
+    const phaseHeading = screen.getByRole("heading", {
       level: 2,
-      name: /security & authentication/i,
+      name: /secure document ingestion/i,
     });
-    expect(securityHeading).toBeInTheDocument();
+    expect(phaseHeading).toBeInTheDocument();
 
     // Verify placeholder status
     const statusPlaceholder = screen.getByTestId("backend-status-placeholder");
     expect(statusPlaceholder).toBeInTheDocument();
-    expect(statusPlaceholder).toHaveTextContent(/security boundary:/i);
+    expect(statusPlaceholder).toHaveTextContent(/document ingestion:/i);
 
     // Verify footer contentinfo
     const footer = screen.getByRole("contentinfo");
