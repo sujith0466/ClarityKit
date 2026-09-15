@@ -64,6 +64,7 @@ class DocumentPage:
         extraction_method: ExtractionMethod,
         ocr_required: bool = False,
         processing_duration_ms: float = 0.0,
+        page_id: str | None = None,
     ) -> "DocumentPage":
         now = datetime.now(UTC).isoformat()
         stripped = text.strip()
@@ -72,7 +73,7 @@ class DocumentPage:
         is_empty = len(stripped) == 0
 
         return cls(
-            id=str(uuid.uuid4()),
+            id=page_id or str(uuid.uuid4()),
             document_id=document_id,
             page_number=page_number,
             text=text,

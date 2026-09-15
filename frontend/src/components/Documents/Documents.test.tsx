@@ -4,8 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentList } from "./DocumentList";
 import { DocumentsManager } from "./DocumentsManager";
+import { RetrievalSearch } from "./RetrievalSearch";
 import { AuthContext, AuthContextType } from "../../context/AuthContext";
-import { DocumentItem } from "../../types/document";
+import { DocumentItem, RetrievalResult } from "../../types/document";
 
 const sampleDocument: DocumentItem = {
   id: "doc-uuid-1234",
@@ -253,6 +254,28 @@ describe("DocumentList Component", () => {
     expect(onProcess).toHaveBeenCalledWith("doc-queued-1");
   });
 
+  it("renders index button for ready document and handles trigger", async () => {
+    const onIndex = vi.fn().mockResolvedValue(undefined);
+
+    renderWithAuth(
+      <DocumentList
+        documents={[sampleDocument]}
+        isLoading={false}
+        error={null}
+        onRefresh={vi.fn()}
+        onDeleteDocument={vi.fn()}
+        onIndexDocument={onIndex}
+      />
+    );
+
+    const indexBtn = screen.getByTestId("index-btn-doc-uuid-1234");
+    expect(indexBtn).toBeInTheDocument();
+    expect(indexBtn).toHaveTextContent("Index");
+
+    await userEvent.click(indexBtn);
+    expect(onIndex).toHaveBeenCalledWith("doc-uuid-1234");
+  });
+
   it("renders view pages button and expands extracted pages panel on click", async () => {
     const mockPages = [
       {
@@ -312,6 +335,111 @@ describe("DocumentList Component", () => {
     expect(
       screen.queryByTestId("pages-panel-doc-uuid-1234")
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("RetrievalSearch Component", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("renders search input, top_k selector, and search button", () => {
+    renderWithAuth(<RetrievalSearch />);
+
+    expect(
+      screen.getByRole("heading", { name: /semantic vector retrieval/i })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("search-input")).toBeInTheDocument();
+    expect(screen.getByTestId("top-k-select")).toBeInTheDocument();
+    expect(screen.getByTestId("search-btn")).toBeDisabled();
+  });
+
+  it("submits semantic query and displays ranked results with mathematical disclaimer", async () => {
+    const mockResults: RetrievalResult[] = [
+      {
+        chunk_id: "chunk-abc-1",
+        document_id: "doc-uuid-1234",
+        chunk_index: 0,
+        text: "The lessee shall indemnify the lessor against damages.",
+        page_start: 1,
+        page_end: 2,
+        similarity: 0.8842,
+        char_count: 53,
+        word_count: 8,
+      },
+    ];
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "success",
+        query: "indemnify lessor",
+        count: 1,
+        results: mockResults,
+      }),
+    });
+    globalThis.fetch = mockFetch;
+
+    renderWithAuth(<RetrievalSearch />);
+
+    const searchInput = screen.getByTestId("search-input");
+    await userEvent.type(searchInput, "indemnify lessor");
+
+    const searchBtn = screen.getByTestId("search-btn");
+    expect(searchBtn).toBeEnabled();
+
+    await userEvent.click(searchBtn);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/retrieval/search",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer valid-mock-jwt",
+          },
+          body: JSON.stringify({ query: "indemnify lessor", top_k: 5 }),
+        })
+      );
+    });
+
+    expect(
+      await screen.findByTestId("search-result-chunk-abc-1")
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pages 1�2 \(Chunk #0\)/)).toBeInTheDocument();
+    expect(
+      screen.getByTestId("similarity-score-chunk-abc-1")
+    ).toHaveTextContent("Cosine Similarity: 0.8842");
+    expect(
+      screen.getByText(/The lessee shall indemnify the lessor/)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/mathematical vector similarity only/i)
+    ).toBeInTheDocument();
+  });
+
+  it("displays empty message when search yields no results", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "success",
+        query: "nonexistent query",
+        count: 0,
+        results: [],
+      }),
+    });
+    globalThis.fetch = mockFetch;
+
+    renderWithAuth(<RetrievalSearch />);
+
+    const searchInput = screen.getByTestId("search-input");
+    await userEvent.type(searchInput, "nonexistent query");
+    await userEvent.click(screen.getByTestId("search-btn"));
+
+    expect(
+      await screen.findByText(/no matching chunks found/i)
+    ).toBeInTheDocument();
   });
 });
 
@@ -388,6 +516,54 @@ describe("DocumentsManager Integration", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/documents/doc-queued-2/process",
+        expect.objectContaining({
+          method: "POST",
+          headers: { Authorization: "Bearer valid-mock-jwt" },
+        })
+      );
+    });
+  });
+
+  it("triggers index API call when index is invoked", async () => {
+    const mockFetch = vi
+      .fn()
+      .mockImplementation((url: string, options?: RequestInit) => {
+        if (
+          url === "/api/documents" &&
+          (!options || !options.method || options.method === "GET")
+        ) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              status: "success",
+              count: 1,
+              documents: [sampleDocument],
+            }),
+          });
+        }
+        if (url === "/api/documents/doc-uuid-1234/index") {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              status: "success",
+              document_id: "doc-uuid-1234",
+              chunk_count: 2,
+              chunks: [],
+            }),
+          });
+        }
+        return Promise.reject(new Error("Unknown route"));
+      });
+    globalThis.fetch = mockFetch;
+
+    renderWithAuth(<DocumentsManager />);
+
+    const indexBtn = await screen.findByTestId("index-btn-doc-uuid-1234");
+    await userEvent.click(indexBtn);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/documents/doc-uuid-1234/index",
         expect.objectContaining({
           method: "POST",
           headers: { Authorization: "Bearer valid-mock-jwt" },

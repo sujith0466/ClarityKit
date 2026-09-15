@@ -84,3 +84,62 @@ export interface DocumentProcessingResponse {
   readonly status: "success";
   readonly processing: ProcessingSummary;
 }
+
+export interface RetrievalChunk {
+  readonly id: string;
+  readonly chunk_id: string;
+  readonly document_id: string;
+  readonly chunk_index: number;
+  readonly text: string;
+  readonly page_start: number;
+  readonly page_end: number;
+  readonly source_page_ids: readonly string[];
+  readonly char_count: number;
+  readonly token_count_est: number;
+  readonly content_hash: string;
+  readonly has_embedding: boolean;
+  readonly created_at: string;
+  readonly updated_at: string;
+}
+
+export interface RetrievalResult {
+  readonly chunk_id: string;
+  readonly document_id: string;
+  readonly chunk_index: number;
+  readonly text: string;
+  readonly page_start: number;
+  readonly page_end: number;
+  readonly similarity: number;
+  readonly char_count: number;
+  readonly word_count: number;
+}
+
+export interface IndexingSummary {
+  readonly document_id: string;
+  readonly status: "indexed" | "not_indexed";
+  readonly chunk_count: number;
+  readonly estimated_token_count: number;
+  readonly embedding_dimensions: number;
+  readonly embedding_model: string;
+}
+
+export interface IndexDocumentResponse {
+  readonly status: "success";
+  readonly document_id: string;
+  readonly chunk_count: number;
+  readonly chunks: readonly RetrievalChunk[];
+}
+
+export interface DocumentChunksResponse {
+  readonly status: "success";
+  readonly document_id: string;
+  readonly count: number;
+  readonly chunks: readonly RetrievalChunk[];
+}
+
+export interface RetrievalSearchResponse {
+  readonly status: "success";
+  readonly query: string;
+  readonly count: number;
+  readonly results: readonly RetrievalResult[];
+}

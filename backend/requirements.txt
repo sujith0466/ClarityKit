@@ -5,7 +5,8 @@ PyJWT==2.10.1
 pypdf==5.3.1
 Pillow==11.1.0
 pytesseract==0.3.13
+psycopg2-binary==2.9.13
+pgvector==0.5.0
 pytest==8.3.4
 ruff==0.9.9
 mypy==1.15.0
-

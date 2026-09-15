@@ -12,7 +12,10 @@ from app.processing.models import (
     ProcessingError,
 )
 from app.processing.ocr import OCRProvider, TesseractOCRProvider
-from app.processing.repository import InMemoryPageRepository, PageRepository
+from app.processing.repository import (
+    PageRepository,
+    in_memory_page_repository,
+)
 from app.storage.interface import StorageService
 from app.storage.local import default_storage_service
 
@@ -139,6 +142,5 @@ class DocumentProcessingService:
         }
 
 
-# Global singleton instances for in-memory foundation
-in_memory_page_repository = InMemoryPageRepository()
+# Global singleton service instance for in-memory foundation
 default_processing_service = DocumentProcessingService()

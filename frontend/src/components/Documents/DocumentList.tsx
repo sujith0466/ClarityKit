@@ -9,6 +9,7 @@ interface DocumentListProps {
   onRefresh: () => void;
   onDeleteDocument: (documentId: string) => Promise<void>;
   onProcessDocument?: (documentId: string) => Promise<void>;
+  onIndexDocument?: (documentId: string) => Promise<void>;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -18,11 +19,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onRefresh,
   onDeleteDocument,
   onProcessDocument,
+  onIndexDocument,
 }) => {
   const { token } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [indexingId, setIndexingId] = useState<string | null>(null);
   const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
   const [pagesLoading, setPagesLoading] = useState<boolean>(false);
   const [docPages, setDocPages] = useState<readonly DocumentPage[]>([]);
@@ -73,6 +76,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     }
   };
 
+  const handleIndex = async (id: string) => {
+    if (!onIndexDocument) return;
+    setIndexingId(id);
+    try {
+      await onIndexDocument(id);
+    } finally {
+      setIndexingId(null);
+    }
+  };
+
   const handleTogglePages = async (docId: string) => {
     if (expandedDocId === docId) {
       setExpandedDocId(null);
@@ -114,6 +127,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     ["queued", "failed"].includes(status.toLowerCase());
   const isProcessing = (status: string, id: string) =>
     status.toLowerCase() === "processing" || processingId === id;
+  const isIndexing = (id: string) => indexingId === id;
 
   return (
     <section
@@ -212,17 +226,29 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                         )}
 
                         {isReady(doc.status) && (
-                          <button
-                            type="button"
-                            className="btn-secondary-sm"
-                            onClick={() => handleTogglePages(doc.id)}
-                            data-testid={`view-pages-btn-${doc.id}`}
-                            aria-label={`View extracted pages for ${doc.filename}`}
-                          >
-                            {expandedDocId === doc.id
-                              ? "Hide Pages"
-                              : "View Pages"}
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className="btn-primary-sm"
+                              onClick={() => handleIndex(doc.id)}
+                              disabled={isIndexing(doc.id)}
+                              data-testid={`index-btn-${doc.id}`}
+                              aria-label={`Index document ${doc.filename}`}
+                            >
+                              {isIndexing(doc.id) ? "Indexing..." : "Index"}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-secondary-sm"
+                              onClick={() => handleTogglePages(doc.id)}
+                              data-testid={`view-pages-btn-${doc.id}`}
+                              aria-label={`View extracted pages for ${doc.filename}`}
+                            >
+                              {expandedDocId === doc.id
+                                ? "Hide Pages"
+                                : "View Pages"}
+                            </button>
+                          </>
                         )}
 
                         {confirmDeleteId === doc.id ? (

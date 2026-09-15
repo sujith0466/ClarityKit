@@ -3,6 +3,7 @@ import { useAuth } from "../../context/useAuth";
 import { DocumentItem, DocumentListResponse } from "../../types/document";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentList } from "./DocumentList";
+import { RetrievalSearch } from "./RetrievalSearch";
 
 export const DocumentsManager: React.FC = () => {
   const { token, isAuthenticated } = useAuth();
@@ -103,6 +104,27 @@ export const DocumentsManager: React.FC = () => {
     }
   };
 
+  const handleIndexDocument = async (documentId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`/api/documents/${documentId}/index`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        setError(data.message || "Failed to index document.");
+        return;
+      }
+    } catch {
+      setError("Network error while indexing document.");
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -117,7 +139,9 @@ export const DocumentsManager: React.FC = () => {
         onRefresh={fetchDocuments}
         onDeleteDocument={handleDeleteDocument}
         onProcessDocument={handleProcessDocument}
+        onIndexDocument={handleIndexDocument}
       />
+      <RetrievalSearch />
     </div>
   );
 };

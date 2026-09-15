@@ -112,5 +112,14 @@ class DocumentService:
         except Exception:
             pass
 
+        # Cleanup vector chunks if any
+        try:
+            from app.retrieval.repository import in_memory_chunk_repository
+
+            in_memory_chunk_repository.delete_chunks_by_document(document_id)
+        except Exception:
+            pass
+
         # Mark deleted in repository
-        return self._repository.delete(document_id)
+        self._repository.update_status(document_id, DocumentStatus.DELETED)
+        return True

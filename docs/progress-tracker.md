@@ -1,11 +1,11 @@
-# ClarityKit â€” Master Progress Tracker
+# ClarityKit — Master Progress Tracker
 
 ## Philosophy
-**UNDERSTAND â†’ EXTRACT â†’ EVIDENCE â†’ ASSIST â†’ PREPARE**
+**UNDERSTAND ? EXTRACT ? EVIDENCE ? ASSIST ? PREPARE**
 
 ---
 
-## Phase 1 â€” Project Foundation
+## Phase 1 — Project Foundation
 
 Status: **VERIFIED**
 
@@ -23,7 +23,7 @@ Status: **VERIFIED**
 
 ---
 
-## Phase 2 â€” Authentication & Security Foundation
+## Phase 2 — Authentication & Security Foundation
 
 Status: **VERIFIED**
 
@@ -41,7 +41,7 @@ Status: **VERIFIED**
 
 ---
 
-## Phase 3 â€” Secure Document Ingestion
+## Phase 3 — Secure Document Ingestion
 
 Status: **VERIFIED**
 
@@ -59,7 +59,9 @@ Status: **VERIFIED**
 | **T-028** | Documentation, CI & Phase 3 Integration | **VERIFIED** |
 | **T-029** | Full Phase 3 Verification & Gate | **VERIFIED** |
 
-## Phase 4 â€” Document Processing & OCR
+---
+
+## Phase 4 — Document Processing & OCR
 
 Status: **VERIFIED**
 
@@ -88,6 +90,48 @@ Status: **VERIFIED**
 | **T-050** | Processing Quality Tooling & Linting | **VERIFIED** |
 | **T-051** | End-to-End Processing Verification & Smoke Tests | **VERIFIED** |
 | **T-052** | Final Phase 4 Gate Report & Freeze Signoff | **VERIFIED** |
+
+---
+
+## Phase 5 — Chunking, Indexing & Retrieval
+
+Status: **VERIFIED**
+
+| Task ID | Description | Status |
+| :--- | :--- | :--- |
+| **T-053** | Retrieval & Indexing Architecture Decision Record (ADR-0004) | **VERIFIED** |
+| **T-054** | Chunk Domain Models & Vector Data Contracts | **VERIFIED** |
+| **T-055** | Deterministic Document Chunker Engine | **VERIFIED** |
+| **T-056** | Page-Aware Chunk Boundary & Overlap Calculator | **VERIFIED** |
+| **T-057** | Non-Orphan Chunk Provenance & Linkage Engine | **VERIFIED** |
+| **T-058** | Legal Text Normalization for Embeddings | **VERIFIED** |
+| **T-059** | Embedding Provider Abstraction Layer | **VERIFIED** |
+| **T-060** | Deterministic / Local Embedding Engine (Test/Dev Provider) | **VERIFIED** |
+| **T-061** | Embedding Generation & Caching Service | **VERIFIED** |
+| **T-062** | PostgreSQL/pgvector Schema & Vector Indexes | **VERIFIED** |
+| **T-063** | pgvector Database Migration Scripts | **VERIFIED** |
+| **T-064** | Vector Chunk Repository & Similarity Search (PgVector + In-Memory) | **VERIFIED** |
+| **T-065** | Document Indexing Pipeline & Task Coordinator | **VERIFIED** |
+| **T-066** | Indexing Idempotency & Re-Indexing Engine | **VERIFIED** |
+| **T-067** | Indexing Status Tracking & Metadata Storage | **VERIFIED** |
+| **T-068** | Multi-Tenant Retrieval Engine & Tenant Boundary | **VERIFIED** |
+| **T-069** | Vector Cosine Similarity Search Pipeline | **VERIFIED** |
+| **T-070** | Retrieval Filtering by Document & Metadata | **VERIFIED** |
+| **T-071** | Safe Retrieval Scoring & Disclaimer Engine | **VERIFIED** |
+| **T-072** | Document Indexing & Retrieval REST API Endpoints | **VERIFIED** |
+| **T-073** | Frontend Retrieval Inspection UI | **VERIFIED** |
+| **T-074** | Chunker Engine Unit Test Suite | **VERIFIED** |
+| **T-075** | Embedding Provider Unit Test Suite | **VERIFIED** |
+| **T-076** | Vector Chunk Repository Unit Test Suite | **VERIFIED** |
+| **T-077** | Indexing Service & Idempotency Test Suite | **VERIFIED** |
+| **T-078** | Retrieval Service & Tenant Isolation Test Suite | **VERIFIED** |
+| **T-079** | Retrieval API Route Integration Test Suite | **VERIFIED** |
+| **T-080** | pgvector Live Neon Integration Smoke Tests | **VERIFIED** |
+| **T-081** | End-to-End Ingestion-to-Retrieval Pipeline Tests | **VERIFIED** |
+| **T-082** | Frontend Retrieval Search Test Suite | **VERIFIED** |
+| **T-083** | Retrieval Architecture Documentation & Progress Tracker | **VERIFIED** |
+| **T-084** | Quality Tooling & Type Checking (Ruff, Mypy, ESLint, Prettier) | **VERIFIED** |
+| **T-085** | Final Phase 5 Gate Report & Freeze Signoff | **VERIFIED** |
 
 ---
 
