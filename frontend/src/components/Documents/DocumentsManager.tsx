@@ -5,10 +5,15 @@ import {
   DocumentUnderstanding,
   DocumentUnderstandingResponse,
 } from "../../types/extraction";
+import {
+  DocumentEvidenceReport,
+  DocumentEvidenceResponse,
+} from "../../types/evidence";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentList } from "./DocumentList";
 import { RetrievalSearch } from "./RetrievalSearch";
 import { DocumentUnderstandingView } from "./DocumentUnderstandingView";
+import { EvidenceViewer } from "./EvidenceViewer";
 
 export const DocumentsManager: React.FC = () => {
   const { token, isAuthenticated } = useAuth();
@@ -17,6 +22,8 @@ export const DocumentsManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeUnderstanding, setActiveUnderstanding] =
     useState<DocumentUnderstanding | null>(null);
+  const [activeEvidenceReport, setActiveEvidenceReport] =
+    useState<DocumentEvidenceReport | null>(null);
   const [activeDocFilename, setActiveDocFilename] = useState<string>("");
 
   const fetchDocuments = useCallback(async () => {
@@ -73,7 +80,7 @@ export const DocumentsManager: React.FC = () => {
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { message?: string };
         setError(data.message || "Failed to delete document.");
         return;
       }
@@ -81,6 +88,10 @@ export const DocumentsManager: React.FC = () => {
       setDocuments((prev) => prev.filter((d) => d.id !== documentId));
       if (activeUnderstanding?.document_id === documentId) {
         setActiveUnderstanding(null);
+        setActiveDocFilename("");
+      }
+      if (activeEvidenceReport?.document_id === documentId) {
+        setActiveEvidenceReport(null);
         setActiveDocFilename("");
       }
     } catch {
@@ -91,6 +102,7 @@ export const DocumentsManager: React.FC = () => {
   const handleProcessDocument = async (documentId: string) => {
     if (!token) return;
 
+    setError(null);
     try {
       const response = await fetch(`/api/documents/${documentId}/process`, {
         method: "POST",
@@ -99,26 +111,26 @@ export const DocumentsManager: React.FC = () => {
         },
       });
 
+      const data = (await response.json()) as {
+        status?: string;
+        message?: string;
+      };
+
       if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || "Failed to process document.");
+        setError(data.message || "Processing failed.");
         return;
       }
 
-      // Update document status locally to READY
-      setDocuments((prev) =>
-        prev.map((doc) =>
-          doc.id === documentId ? { ...doc, status: "ready" as const } : doc
-        )
-      );
+      await fetchDocuments();
     } catch {
-      setError("Network error while triggering document processing.");
+      setError("Network error while processing document.");
     }
   };
 
   const handleIndexDocument = async (documentId: string) => {
     if (!token) return;
 
+    setError(null);
     try {
       const response = await fetch(`/api/documents/${documentId}/index`, {
         method: "POST",
@@ -127,11 +139,17 @@ export const DocumentsManager: React.FC = () => {
         },
       });
 
+      const data = (await response.json()) as {
+        status?: string;
+        message?: string;
+      };
+
       if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || "Failed to index document.");
+        setError(data.message || "Indexing failed.");
         return;
       }
+
+      await fetchDocuments();
     } catch {
       setError("Network error while indexing document.");
     }
@@ -203,6 +221,36 @@ export const DocumentsManager: React.FC = () => {
     }
   };
 
+  const handleViewEvidence = async (documentId: string, filename: string) => {
+    if (!token) return;
+
+    setError(null);
+    try {
+      const response = await fetch(`/api/documents/${documentId}/evidence`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = (await response.json()) as DocumentEvidenceResponse & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "Failed to load evidence report. Ensure document has been processed and extracted."
+        );
+        return;
+      }
+
+      setActiveDocFilename(filename);
+      setActiveEvidenceReport(data.evidence_report);
+    } catch {
+      setError("Network error while fetching evidence report.");
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -220,6 +268,7 @@ export const DocumentsManager: React.FC = () => {
         onIndexDocument={handleIndexDocument}
         onExtractDocument={handleExtractDocument}
         onViewUnderstanding={handleViewUnderstanding}
+        onViewEvidence={handleViewEvidence}
       />
       {activeUnderstanding && (
         <DocumentUnderstandingView
@@ -227,6 +276,16 @@ export const DocumentsManager: React.FC = () => {
           documentFilename={activeDocFilename}
           onClose={() => {
             setActiveUnderstanding(null);
+            setActiveDocFilename("");
+          }}
+        />
+      )}
+      {activeEvidenceReport && (
+        <EvidenceViewer
+          report={activeEvidenceReport}
+          documentFilename={activeDocFilename}
+          onClose={() => {
+            setActiveEvidenceReport(null);
             setActiveDocFilename("");
           }}
         />

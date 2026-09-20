@@ -15,3 +15,4 @@ export interface ServiceStatus {
 export * from "./auth";
 export * from "./document";
 export * from "./extraction";
+export * from "./evidence";

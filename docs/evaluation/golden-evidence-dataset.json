@@ -1,0 +1,41 @@
+[
+  {
+    "id": "gold-001",
+    "document_name": "commercial_lease_agreement.pdf",
+    "domain": "real_estate_lease",
+    "claim": "Tenant must pay monthly rent of $3,500 on or before the first day of each calendar month.",
+    "claim_type": "obligation",
+    "page_start": 2,
+    "page_end": 2,
+    "source_span": "Tenant shall pay to Landlord as Base Rent the sum of $3,500 per month, payable in advance on the first day of each calendar month.",
+    "expected_citation_validity": "VALID",
+    "human_verified_grounding": true,
+    "notes": "Exact numerical, obligor, and deadline match with lease terms."
+  },
+  {
+    "id": "gold-002",
+    "document_name": "executive_employment_agreement.pdf",
+    "domain": "employment",
+    "claim": "Employee is subject to a 12-month post-termination non-solicitation covenant.",
+    "claim_type": "review_flag",
+    "page_start": 5,
+    "page_end": 5,
+    "source_span": "During the term of employment and for a period of twelve (12) months following termination, Executive shall not solicit any customer or employee of the Company.",
+    "expected_citation_validity": "VALID",
+    "human_verified_grounding": true,
+    "notes": "Captures restrictive covenant duration and scope accurately."
+  },
+  {
+    "id": "gold-003",
+    "document_name": "mutual_nda.pdf",
+    "domain": "confidentiality",
+    "claim": "Receiving Party may freely disclose confidential information to any third party at will.",
+    "claim_type": "obligation",
+    "page_start": 1,
+    "page_end": 1,
+    "source_span": "Receiving Party shall hold and maintain the Confidential Information in strictest confidence and shall not disclose it to any third party.",
+    "expected_citation_validity": "VALID",
+    "human_verified_grounding": false,
+    "notes": "Citation validity is VALID (span exists), but grounding correctness is FALSE because the claim states the opposite of what the source text obligates."
+  }
+]

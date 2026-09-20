@@ -170,8 +170,42 @@ Status: **VERIFIED**
 
 ---
 
-## Status Legend
-- **NOT STARTED**: Task is waiting to be picked up.
-- **IN PROGRESS**: Task is currently being implemented.
-- **BLOCKED**: Task has unmet dependencies or failing verification.
-- **VERIFIED**: Task is completed, all automated and manual checks passed, and criteria verified.
+### Phase 7: Evidence Engine & Citation Verification (Tasks T-111 → T-135)
+
+Status: **VERIFIED**
+
+| Task ID | Description | Status |
+| :--- | :--- | :--- |
+| **T-111** | Evidence Domain Models & Enums Definition | **VERIFIED** |
+| **T-112** | Mechanical Source Span Resolver (Exact, Whitespace, Unicode) | **VERIFIED** |
+| **T-113** | Cross-Page Span Resolution Logic & Boundary Validation | **VERIFIED** |
+| **T-114** | Evidence Validator & No-Evidence Rule Enforcement | **VERIFIED** |
+| **T-115** | Deterministic Evidence Coverage Calculator | **VERIFIED** |
+| **T-116** | Evidence Database Migration (0004_evidence_engine.sql) | **VERIFIED** |
+| **T-117** | Evidence Repository Interface & In-Memory Implementation | **VERIFIED** |
+| **T-118** | PostgreSQL Evidence Repository with SQL Tenant Isolation | **VERIFIED** |
+| **T-119** | Evidence Coordinator Service Implementation | **VERIFIED** |
+| **T-120** | Extraction-to-Evidence Transformation Pipeline | **VERIFIED** |
+| **T-121** | REST API Endpoints: GET /api/documents/<id>/evidence | **VERIFIED** |
+| **T-122** | REST API Endpoints: POST /api/documents/<id>/evidence/validate | **VERIFIED** |
+| **T-123** | Frontend TypeScript Definitions for Evidence Engine | **VERIFIED** |
+| **T-124** | Accessible Evidence Viewer Component with Coverage Meter | **VERIFIED** |
+| **T-125** | Interactive Source Text Highlighting & Page Context Viewer | **VERIFIED** |
+| **T-126** | DocumentList & DocumentsManager Evidence Integration | **VERIFIED** |
+| **T-127** | Evidence Domain Models & Resolver Unit Tests | **VERIFIED** |
+| **T-128** | Live PostgreSQL Evidence Integration Tests | **VERIFIED** |
+| **T-129** | Evidence Security, Auth & Cross-Tenant IDOR Tests | **VERIFIED** |
+| **T-130** | Adversarial & Prompt-Injection Resistance Tests | **VERIFIED** |
+| **T-131** | Synthetic Lease & Contract End-to-End Pipeline Tests | **VERIFIED** |
+| **T-132** | Frontend Evidence Viewer Component Tests | **VERIFIED** |
+| **T-133** | Golden Evidence Dataset Schema & Grounding Evaluation Support | **VERIFIED** |
+| **T-134** | Architecture Decision Record (ADR-0006) | **VERIFIED** |
+| **T-135** | Phase 7 Quality Tooling, Verification Signoff & Progress Tracker | **VERIFIED** |
+
+---
+
+## Status Legend
+- **NOT STARTED**: Task is waiting to be picked up.
+- **IN PROGRESS**: Task is currently being implemented.
+- **BLOCKED**: Task has unmet dependencies or failing verification.
+- **VERIFIED**: Task is completed, all automated and manual checks passed, and criteria verified.

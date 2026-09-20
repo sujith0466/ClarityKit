@@ -12,6 +12,7 @@ interface DocumentListProps {
   onIndexDocument?: (documentId: string) => Promise<void>;
   onExtractDocument?: (documentId: string) => Promise<void>;
   onViewUnderstanding?: (documentId: string, filename: string) => Promise<void>;
+  onViewEvidence?: (documentId: string, filename: string) => Promise<void>;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -24,6 +25,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onIndexDocument,
   onExtractDocument,
   onViewUnderstanding,
+  onViewEvidence,
 }) => {
   const { token } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -277,6 +279,19 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                 aria-label={`View understanding for ${doc.filename}`}
                               >
                                 Understanding
+                              </button>
+                            )}
+                            {onViewEvidence && (
+                              <button
+                                type="button"
+                                className="btn-secondary-sm btn-evidence"
+                                onClick={() =>
+                                  onViewEvidence(doc.id, doc.filename)
+                                }
+                                data-testid={`view-evidence-btn-${doc.id}`}
+                                aria-label={`View evidence for ${doc.filename}`}
+                              >
+                                Evidence
                               </button>
                             )}
                             <button
