@@ -343,6 +343,8 @@ Status: **VERIFIED**
 
 ### Phase 8: Trust & Safety Layer
 
+Status: **FROZEN**
+
 | Task ID | Task Description | Status |
 | :--- | :--- | :--- |
 | **T-136** | Trust Domain Models & Schema Definitions | **VERIFIED** |
@@ -371,6 +373,16 @@ Status: **VERIFIED**
 | **T-159** | Frontend Trust Viewer Component Tests | **VERIFIED** |
 | **T-160** | Architecture Decision Record (ADR-0007) | **VERIFIED** |
 | **T-161** | Phase 8 Quality Tooling, Verification Signoff & Progress Tracker | **VERIFIED** |
+
+---
+
+### Phase 9: Timeline Engine
+
+Status: **NOT STARTED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-162** | Timeline Engine Architecture & Scope Definition | **NOT STARTED** |
 
 --- 
 
