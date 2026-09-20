@@ -12,6 +12,7 @@ from app.routes.evidence import evidence_bp
 from app.routes.extraction import extraction_bp
 from app.routes.health import health_bp
 from app.routes.retrieval import retrieval_bp
+from app.routes.trust import trust_bp
 
 # Load .env if present
 load_dotenv()
@@ -46,5 +47,6 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(retrieval_bp)
     app.register_blueprint(extraction_bp)
     app.register_blueprint(evidence_bp)
+    app.register_blueprint(trust_bp)
 
     return app

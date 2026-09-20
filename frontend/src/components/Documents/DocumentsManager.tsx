@@ -9,11 +9,13 @@ import {
   DocumentEvidenceReport,
   DocumentEvidenceResponse,
 } from "../../types/evidence";
+import { DocumentTrustReport, TrustResponse } from "../../types/trust";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentList } from "./DocumentList";
 import { RetrievalSearch } from "./RetrievalSearch";
 import { DocumentUnderstandingView } from "./DocumentUnderstandingView";
 import { EvidenceViewer } from "./EvidenceViewer";
+import { TrustSafetyViewer } from "./TrustSafetyViewer";
 
 export const DocumentsManager: React.FC = () => {
   const { token, isAuthenticated } = useAuth();
@@ -24,6 +26,8 @@ export const DocumentsManager: React.FC = () => {
     useState<DocumentUnderstanding | null>(null);
   const [activeEvidenceReport, setActiveEvidenceReport] =
     useState<DocumentEvidenceReport | null>(null);
+  const [activeTrustReport, setActiveTrustReport] =
+    useState<DocumentTrustReport | null>(null);
   const [activeDocFilename, setActiveDocFilename] = useState<string>("");
 
   const fetchDocuments = useCallback(async () => {
@@ -92,6 +96,10 @@ export const DocumentsManager: React.FC = () => {
       }
       if (activeEvidenceReport?.document_id === documentId) {
         setActiveEvidenceReport(null);
+        setActiveDocFilename("");
+      }
+      if (activeTrustReport?.document_id === documentId) {
+        setActiveTrustReport(null);
         setActiveDocFilename("");
       }
     } catch {
@@ -251,6 +259,36 @@ export const DocumentsManager: React.FC = () => {
     }
   };
 
+  const handleViewTrust = async (documentId: string, filename: string) => {
+    if (!token) return;
+
+    setError(null);
+    try {
+      const response = await fetch(`/api/documents/${documentId}/trust`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = (await response.json()) as TrustResponse & {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            "Failed to load trust report. Ensure document has been processed and extracted."
+        );
+        return;
+      }
+
+      setActiveDocFilename(filename);
+      setActiveTrustReport(data.trust_report);
+    } catch {
+      setError("Network error while fetching trust & safety report.");
+    }
+  };
+
   if (!isAuthenticated) {
     return null;
   }
@@ -269,6 +307,7 @@ export const DocumentsManager: React.FC = () => {
         onExtractDocument={handleExtractDocument}
         onViewUnderstanding={handleViewUnderstanding}
         onViewEvidence={handleViewEvidence}
+        onViewTrust={handleViewTrust}
       />
       {activeUnderstanding && (
         <DocumentUnderstandingView
@@ -286,6 +325,16 @@ export const DocumentsManager: React.FC = () => {
           documentFilename={activeDocFilename}
           onClose={() => {
             setActiveEvidenceReport(null);
+            setActiveDocFilename("");
+          }}
+        />
+      )}
+      {activeTrustReport && (
+        <TrustSafetyViewer
+          report={activeTrustReport}
+          documentFilename={activeDocFilename}
+          onClose={() => {
+            setActiveTrustReport(null);
             setActiveDocFilename("");
           }}
         />
