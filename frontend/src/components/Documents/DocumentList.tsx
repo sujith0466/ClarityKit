@@ -14,6 +14,7 @@ interface DocumentListProps {
   onViewUnderstanding?: (documentId: string, filename: string) => Promise<void>;
   onViewEvidence?: (documentId: string, filename: string) => Promise<void>;
   onViewTrust?: (documentId: string, filename: string) => Promise<void>;
+  onOpenWorkspace?: (documentId: string, documentItem: DocumentItem) => void;
 }
 
 export const DocumentList: React.FC<DocumentListProps> = ({
@@ -28,6 +29,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   onViewUnderstanding,
   onViewEvidence,
   onViewTrust,
+  onOpenWorkspace,
 }) => {
   const { token } = useAuth();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -268,6 +270,17 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                                 {extractingId === doc.id
                                   ? "Extracting..."
                                   : "Extract"}
+                              </button>
+                            )}
+                            {onOpenWorkspace && (
+                              <button
+                                type="button"
+                                className="btn-secondary-sm btn-workspace"
+                                onClick={() => onOpenWorkspace(doc.id, doc)}
+                                data-testid={`open-workspace-btn-${doc.id}`}
+                                aria-label={`Open workspace for ${doc.filename}`}
+                              >
+                                Workspace
                               </button>
                             )}
                             {onViewUnderstanding && (

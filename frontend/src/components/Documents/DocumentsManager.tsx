@@ -16,12 +16,15 @@ import { RetrievalSearch } from "./RetrievalSearch";
 import { DocumentUnderstandingView } from "./DocumentUnderstandingView";
 import { EvidenceViewer } from "./EvidenceViewer";
 import { TrustSafetyViewer } from "./TrustSafetyViewer";
+import { DocumentWorkspace } from "../Workspace/DocumentWorkspace";
 
 export const DocumentsManager: React.FC = () => {
   const { token, isAuthenticated } = useAuth();
   const [documents, setDocuments] = useState<readonly DocumentItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeWorkspaceDoc, setActiveWorkspaceDoc] =
+    useState<DocumentItem | null>(null);
   const [activeUnderstanding, setActiveUnderstanding] =
     useState<DocumentUnderstanding | null>(null);
   const [activeEvidenceReport, setActiveEvidenceReport] =
@@ -293,6 +296,16 @@ export const DocumentsManager: React.FC = () => {
     return null;
   }
 
+  if (activeWorkspaceDoc) {
+    return (
+      <DocumentWorkspace
+        documentId={activeWorkspaceDoc.id}
+        initialDocument={activeWorkspaceDoc}
+        onClose={() => setActiveWorkspaceDoc(null)}
+      />
+    );
+  }
+
   return (
     <div className="documents-section" data-testid="documents-manager">
       <DocumentUpload onUploadSuccess={handleUploadSuccess} />
@@ -308,6 +321,7 @@ export const DocumentsManager: React.FC = () => {
         onViewUnderstanding={handleViewUnderstanding}
         onViewEvidence={handleViewEvidence}
         onViewTrust={handleViewTrust}
+        onOpenWorkspace={(_id, doc) => setActiveWorkspaceDoc(doc)}
       />
       {activeUnderstanding && (
         <DocumentUnderstandingView
