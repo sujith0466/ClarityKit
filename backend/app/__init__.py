@@ -11,6 +11,7 @@ from app.routes.documents import documents_bp
 from app.routes.evidence import evidence_bp
 from app.routes.extraction import extraction_bp
 from app.routes.health import health_bp
+from app.routes.qa import qa_bp
 from app.routes.retrieval import retrieval_bp
 from app.routes.trust import trust_bp
 
@@ -48,5 +49,6 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(extraction_bp)
     app.register_blueprint(evidence_bp)
     app.register_blueprint(trust_bp)
+    app.register_blueprint(qa_bp)
 
     return app

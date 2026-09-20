@@ -2,12 +2,15 @@ import re
 from datetime import datetime
 
 from app.reasoning.models import (
+    QAReasoningRequest,
+    RawAnswerClaim,
     RawExtractedClause,
     RawExtractedDate,
     RawExtractedObligation,
     RawExtractedParty,
     RawExtractedReviewFlag,
     RawExtractionResult,
+    RawQAResult,
     ReasoningRequest,
 )
 from app.reasoning.provider import ExtractionLLMProvider
@@ -600,3 +603,437 @@ class DeterministicStructuredExtractionProvider(ExtractionLLMProvider):
             )
 
         return flags
+
+    def generate_grounded_answer(self, request: QAReasoningRequest) -> RawQAResult:
+        """Deterministically answer questions grounded in retrieved document chunks."""
+        question_lower = request.question.lower().strip()
+        chunks = request.context_chunks
+
+        # Prompt injection detection in question
+        if any(
+            adv in question_lower
+            for adv in [
+                "ignore previous instructions",
+                "disregard previous",
+                "reveal system prompt",
+                "show system instructions",
+                "you are now an unfiltered",
+                "jailbreak",
+                "bypass rules",
+                "ignore all rules",
+                "developer mode",
+            ]
+        ):
+            return RawQAResult(
+                answer_text=(
+                    "ClarityKit operates strictly as an evidence-grounded "
+                    "assistant. System directives cannot be overridden by "
+                    "user or document prompts. All inquiries must pertain to "
+                    "the factual contents of the uploaded document."
+                ),
+                claims=[
+                    RawAnswerClaim(
+                        claim_text=(
+                            "System directives cannot be overridden by user or "
+                            "document prompts."
+                        ),
+                        claim_type="general_information",
+                    )
+                ],
+                general_information="System directives are fixed and non-overridable.",
+                requires_professional_review=False,
+                provider_info={
+                    "provider": self.provider_name,
+                    "mode": "adversarial_guard",
+                },
+            )
+
+        # Check if question is asking for legal advice
+        legal_advice_terms = [
+            "should i sign",
+            "is this legal",
+            "is this enforceable",
+            "is it valid",
+            "will i win",
+            "can i sue",
+            "court outcome",
+            "legal advice",
+            "enforceable",
+            "enforceability",
+            "legally valid",
+            "validity",
+            "legal counsel",
+        ]
+        is_advice_query = any(term in question_lower for term in legal_advice_terms)
+
+        if not chunks:
+            return RawQAResult(
+                answer_text=(
+                    "The provided document does not contain enough information to "
+                    "answer this question."
+                ),
+                claims=[],
+                requires_professional_review=is_advice_query,
+                provider_info={
+                    "provider": self.provider_name,
+                    "status": "no_context",
+                },
+            )
+
+        claims: list[RawAnswerClaim] = []
+        answer_sentences: list[str] = []
+
+        # 1. Governing Law / Jurisdiction
+        if any(
+            term in question_lower
+            for term in ["governing law", "jurisdiction", "which state", "what law"]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(governing law|laws of|jurisdiction)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(laws of|governed by)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=(
+                                f"Agreement is governed by laws specified in the "
+                                f"contract: {span}"
+                            ),
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(f"According to Page {pnum}, {span}")
+                    break
+
+        # 2. Termination / Notice
+        if any(
+            term in question_lower
+            for term in [
+                "terminate",
+                "termination",
+                "notice period",
+                "how can either party terminate",
+                "cancel",
+                "days notice",
+            ]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(terminate|termination|written notice|days['\s]*notice)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(terminate|written notice)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Termination terms: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(
+                        f"The agreement specifies on Page {pnum}: {span}"
+                    )
+                    break
+
+        # 3. Parties
+        if any(
+            term in question_lower
+            for term in [
+                "parties",
+                "who signed",
+                "who are the parties",
+                "who entered",
+                "provider",
+                "client",
+            ]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(entered into by|between|parties|provider|client|acme|beta)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(entered into|between)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Contracting parties identified: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(
+                        f"On Page {pnum}, the agreement identifies the parties: {span}"
+                    )
+                    break
+
+        # 4. Payment / Fees / Compensation
+        if any(
+            term in question_lower
+            for term in [
+                "payment",
+                "fee",
+                "compensation",
+                "price",
+                "pay",
+                "cost",
+                "invoice",
+            ]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(payment|fee|invoice|compensation|dollar|\$)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(payment|fee|invoice|compensation|dollar|\$)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Payment terms: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(
+                        f"Regarding payment, Page {pnum} states: {span}"
+                    )
+                    break
+
+        # 5. Confidentiality / NDA
+        if any(
+            term in question_lower
+            for term in [
+                "confidential",
+                "nda",
+                "nondisclosure",
+                "non-disclosure",
+                "secret",
+            ]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(confidential|proprietary|disclosure)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(confidential|proprietary|disclosure)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Confidentiality obligation: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(
+                        f"Regarding confidentiality, Page {pnum} provides: {span}"
+                    )
+                    break
+
+        # 6. Liability / Indemnity
+        if any(
+            term in question_lower
+            for term in ["liability", "indemn", "damages", "cap", "limit"]
+        ):
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                if re.search(
+                    r"\b(liability|indemnif|damages|cap)\b",
+                    ctext,
+                    re.IGNORECASE,
+                ):
+                    sentence_match = re.search(
+                        r"([^.!?]*\b(liability|indemnif|damages|cap)\b[^.!?]*[.!?])",
+                        ctext,
+                        re.IGNORECASE,
+                    )
+                    span = (
+                        sentence_match.group(0).strip()
+                        if sentence_match
+                        else ctext[:100]
+                    )
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Liability terms: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(f"Page {pnum} addresses liability: {span}")
+                    break
+
+        # 7. Generic keyword / text fallback search
+        if not claims:
+            stopwords = {
+                "what",
+                "when",
+                "where",
+                "which",
+                "who",
+                "whom",
+                "whose",
+                "why",
+                "how",
+                "is",
+                "are",
+                "was",
+                "were",
+                "be",
+                "been",
+                "being",
+                "have",
+                "has",
+                "had",
+                "do",
+                "does",
+                "did",
+                "the",
+                "a",
+                "an",
+                "and",
+                "or",
+                "but",
+                "if",
+                "in",
+                "on",
+                "at",
+                "to",
+                "for",
+                "with",
+                "by",
+                "about",
+                "against",
+                "this",
+                "that",
+                "these",
+                "those",
+            }
+            query_words = [
+                w
+                for w in re.findall(r"\b\w+\b", question_lower)
+                if w not in stopwords and len(w) > 2
+            ]
+
+            for chunk in chunks:
+                ctext = chunk.get("chunk_text", chunk.get("text", ""))
+                pnum = chunk.get("page_number", chunk.get("page_start", 1))
+                ctext_lower = ctext.lower()
+                matched_words = [w for w in query_words if w in ctext_lower]
+                if matched_words:
+                    pat = rf"([^.!?]*\b({'|'.join(matched_words)})\b[^.!?]*[.!?])"
+                    match = re.search(pat, ctext, re.IGNORECASE)
+                    span = match.group(0).strip() if match else ctext[:120].strip()
+                    claims.append(
+                        RawAnswerClaim(
+                            claim_text=f"Relevant passage: {span}",
+                            claim_type="document_fact",
+                            page_start=pnum,
+                            page_end=pnum,
+                            source_span=span,
+                        )
+                    )
+                    answer_sentences.append(f"According to Page {pnum}: {span}")
+                    break
+
+        if not claims:
+            return RawQAResult(
+                answer_text=(
+                    "The provided document does not contain enough information to "
+                    "answer this question."
+                ),
+                claims=[],
+                requires_professional_review=is_advice_query,
+                provider_info={
+                    "provider": self.provider_name,
+                    "status": "insufficient_facts",
+                },
+            )
+
+        final_answer = " ".join(answer_sentences)
+        if is_advice_query:
+            final_answer += (
+                " Note: This analysis is factual. Determining legal enforceability "
+                "or advice requires review by a qualified legal professional."
+            )
+
+        return RawQAResult(
+            answer_text=final_answer,
+            claims=claims,
+            general_information=(
+                "General legal standards may vary by jurisdiction."
+                if is_advice_query
+                else None
+            ),
+            requires_professional_review=is_advice_query,
+            provider_info={"provider": self.provider_name, "status": "success"},
+        )

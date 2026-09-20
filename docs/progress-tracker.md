@@ -407,6 +407,48 @@ Status: **VERIFIED**
 | **T-184** | End-to-End Synthetic Contract Workspace Smoke Tests | **VERIFIED** |
 | **T-185** | Phase 9 Quality Gates, Progress Tracker & Checkpoint Review | **VERIFIED** |
 
+---
+
+### Phase 10: Grounded Document Q&A
+
+Status: **VERIFIED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-186** | Grounded Document Q&A Architecture Decision Record (ADR-0009) | **VERIFIED** |
+| **T-187** | Q&A Domain Models & Data Contracts (AnswerClaim, QAMessage, QASession) | **VERIFIED** |
+| **T-188** | Q&A Database Migration (0006_grounded_qa.sql) | **VERIFIED** |
+| **T-189** | PostgreSQL & In-Memory Q&A Repository Layer with SQL Tenant Isolation | **VERIFIED** |
+| **T-190** | Question Validation & Session Title Normalization Engine | **VERIFIED** |
+| **T-191** | Multi-Tenant Retrieval Orchestration & Chunk Formatting | **VERIFIED** |
+| **T-192** | Retrieval Sufficiency & Safe Fallback Determination Engine | **VERIFIED** |
+| **T-193** | Reasoning Gateway Extension for Grounded Q&A Generation | **VERIFIED** |
+| **T-194** | Prompt Injection Sandboxing & Untrusted Document Boundaries | **VERIFIED** |
+| **T-195** | Grounded Answer & Claim Generation Provider (Deterministic) | **VERIFIED** |
+| **T-196** | Mechanical Citation Verification via Phase 7 EvidenceValidator | **VERIFIED** |
+| **T-197** | Strict "No-Evidence, No Document-Fact" Enforcement Engine | **VERIFIED** |
+| **T-198** | Deterministic Trust & Safety Classification Integration (Phase 8 Reuse) | **VERIFIED** |
+| **T-199** | Grounded Answer Assembly & Evidence Reference Summaries | **VERIFIED** |
+| **T-200** | Q&A Coordinator Service Implementation (QAService) | **VERIFIED** |
+| **T-201** | REST API Endpoints: POST /api/documents/<id>/questions | **VERIFIED** |
+| **T-202** | REST API Endpoints: GET /api/documents/<id>/questions | **VERIFIED** |
+| **T-203** | REST API Endpoints: POST /api/documents/<id>/qa/sessions | **VERIFIED** |
+| **T-204** | REST API Endpoints: GET /api/documents/<id>/qa/sessions & /<id>/qa/sessions/<session_id> | **VERIFIED** |
+| **T-205** | REST API Endpoints: GET /api/questions/<message_id> | **VERIFIED** |
+| **T-206** | Frontend TypeScript Definitions for Grounded Q&A | **VERIFIED** |
+| **T-207** | Frontend EvidenceBadge & Interactive Citation Badge Component | **VERIFIED** |
+| **T-208** | Frontend QASafetyNotice & Trust Tier Badge Components | **VERIFIED** |
+| **T-209** | Frontend QuestionComposer & Suggested Sample Query Chips Component | **VERIFIED** |
+| **T-210** | Frontend AnswerCard with Evidence Linking Component | **VERIFIED** |
+| **T-211** | Frontend QAView Conversation Flow & Session Management Component | **VERIFIED** |
+| **T-212** | DocumentWorkspace Integration & SourceInspectorModal Linking | **VERIFIED** |
+| **T-213** | Q&A Domain Models & Serialization Unit Tests | **VERIFIED** |
+| **T-214** | QAService Orchestration & Safety Invariants Unit Tests | **VERIFIED** |
+| **T-215** | Q&A Security, Auth & Cross-Tenant IDOR Tests | **VERIFIED** |
+| **T-216** | Live PostgreSQL Q&A Repository Integration Tests | **VERIFIED** |
+| **T-217** | Golden Grounding Fixtures & Grounding Evaluation Harness (run_grounding_eval.py) | **VERIFIED** |
+| **T-218** | Phase 10 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
+
 --- 
 
 ## Status Legend

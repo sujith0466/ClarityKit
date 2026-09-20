@@ -367,6 +367,10 @@ describe("DocumentWorkspace Component", () => {
     expect(screen.getByTestId("review-areas-view")).toBeInTheDocument();
     expect(screen.getByText("Broad Non-Compete Scope")).toBeInTheDocument();
 
+    // Switch to Grounded Q&A
+    fireEvent.click(screen.getByTestId("workspace-tab-qa"));
+    expect(screen.getByTestId("qa-view")).toBeInTheDocument();
+
     // Switch to Evidence
     fireEvent.click(screen.getByTestId("workspace-tab-evidence"));
     expect(screen.getByTestId("evidence-viewer")).toBeInTheDocument();

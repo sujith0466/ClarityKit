@@ -9,6 +9,7 @@ import { DocumentTrustReport } from "./trust";
 
 export type WorkspaceTab =
   | "overview"
+  | "qa"
   | "parties"
   | "clauses"
   | "obligations"

@@ -3,7 +3,12 @@ import logging
 from app.reasoning.deterministic_provider import (
     DeterministicStructuredExtractionProvider,
 )
-from app.reasoning.models import RawExtractionResult, ReasoningRequest
+from app.reasoning.models import (
+    QAReasoningRequest,
+    RawExtractionResult,
+    RawQAResult,
+    ReasoningRequest,
+)
 from app.reasoning.provider import ExtractionLLMProvider
 
 logger = logging.getLogger(__name__)
@@ -35,6 +40,15 @@ class ReasoningGateway:
             self._provider.provider_name,
         )
         return self._provider.extract_structured_data(request)
+
+    def generate_grounded_answer(self, request: QAReasoningRequest) -> RawQAResult:
+        """Route Q&A reasoning request to the configured provider."""
+        logger.info(
+            "Generating grounded answer for document %s query via provider %s",
+            request.document_id,
+            self._provider.provider_name,
+        )
+        return self._provider.generate_grounded_answer(request)
 
 
 # Singleton gateway instance for default runtime

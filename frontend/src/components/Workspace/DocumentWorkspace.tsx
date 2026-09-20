@@ -25,6 +25,7 @@ import { ReviewAreasView } from "./ReviewAreasView";
 import { SourceInspectorModal } from "./SourceInspectorModal";
 import { EvidenceViewer } from "../Documents/EvidenceViewer";
 import { TrustSafetyViewer } from "../Documents/TrustSafetyViewer";
+import { QAView } from "../QA/QAView";
 
 interface DocumentWorkspaceProps {
   documentId: string;
@@ -157,6 +158,7 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
       label: "Review Areas",
       count: understanding?.review_flags.length,
     },
+    { id: "qa", label: "Grounded Q&A" },
     { id: "evidence", label: "Evidence" },
     { id: "trust", label: "Trust & Safety" },
   ];
@@ -260,6 +262,21 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
               evidenceReport={evidenceReport}
               trustReport={trustReport}
               onSelectTab={setActiveTab}
+            />
+          </div>
+        )}
+
+        {activeTab === "qa" && (
+          <div
+            role="tabpanel"
+            id="panel-qa"
+            aria-labelledby="tab-qa"
+            tabIndex={0}
+          >
+            <QAView
+              documentId={document.id}
+              documentFilename={document.filename}
+              onInspect={setInspectTarget}
             />
           </div>
         )}
