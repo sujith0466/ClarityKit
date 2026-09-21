@@ -449,10 +449,57 @@ Status: **VERIFIED**
 | **T-217** | Golden Grounding Fixtures & Grounding Evaluation Harness (run_grounding_eval.py) | **VERIFIED** |
 | **T-218** | Phase 10 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
 
---- 
+### Phase 11: Lawyer-Preparation Brief
+
+Status: **VERIFIED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-219** | Lawyer-Preparation Brief Architecture Decision Record (ADR-0010) | **VERIFIED** |
+| **T-220** | Brief Domain Models & Typed Contracts (LawyerPreparationBrief, BriefSection, BriefQuestion, BriefItem) | **VERIFIED** |
+| **T-221** | Brief Validation & Deterministic Legal Claim Sanitization Engine | **VERIFIED** |
+| **T-222** | Brief Database Migration (0007_lawyer_preparation_brief.sql) | **VERIFIED** |
+| **T-223** | PostgreSQL & In-Memory Brief Repository Layer with SQL Tenant Isolation | **VERIFIED** |
+| **T-224** | Reasoning Gateway Extension for Brief Question Generation | **VERIFIED** |
+| **T-225** | Brief Prompt Builder with Anti-Legal-Advice Guardrails | **VERIFIED** |
+| **T-226** | Deterministic Brief Reasoning Provider Implementation | **VERIFIED** |
+| **T-227** | Phase 6 Structured Extraction Composition & Normalization | **VERIFIED** |
+| **T-228** | Phase 7 Mechanical Evidence Verification & No-Evidence Rule Enforcement for Brief Items | **VERIFIED** |
+| **T-229** | Phase 8 Trust & Safety Tiering Integration for Brief Content | **VERIFIED** |
+| **T-230** | Phase 10 Grounded Q&A Session Discovery & Question Formulation | **VERIFIED** |
+| **T-231** | Facts to Confirm Checklist Derivation Engine | **VERIFIED** |
+| **T-232** | Documents to Bring Checklist Derivation Engine | **VERIFIED** |
+| **T-233** | Strategic Consultation Question Categorization & Prioritization | **VERIFIED** |
+| **T-234** | Completeness Score & Evidence Coverage Metric Engine | **VERIFIED** |
+| **T-235** | Brief Coordinator Service (BriefService) Implementation | **VERIFIED** |
+| **T-236** | Multi-Page Standards-Compliant PDF Exporter Engine (SimplePDFBuilder) | **VERIFIED** |
+| **T-237** | REST API Endpoint: POST /api/documents/<id>/brief (Generate / Refresh Brief) | **VERIFIED** |
+| **T-238** | REST API Endpoint: GET /api/documents/<id>/brief (Get Document Brief) | **VERIFIED** |
+| **T-239** | REST API Endpoint: GET /api/briefs/<id> (Get Brief by ID) | **VERIFIED** |
+| **T-240** | REST API Endpoint: DELETE /api/briefs/<id> (Delete Brief) | **VERIFIED** |
+| **T-241** | REST API Endpoint: GET /api/briefs/<id>/export/pdf (Download PDF Brief) | **VERIFIED** |
+| **T-242** | Frontend TypeScript Definitions for Lawyer-Preparation Brief | **VERIFIED** |
+| **T-243** | Frontend BriefSafetyNotice & Consultation Disclaimer Component | **VERIFIED** |
+| **T-244** | Frontend BriefOverview & Completeness Score Meter Component | **VERIFIED** |
+| **T-245** | Frontend BriefQuestions Categorized Accordion Component | **VERIFIED** |
+| **T-246** | Frontend BriefFactsToConfirm Checklist Component | **VERIFIED** |
+| **T-247** | Frontend BriefDocumentsToBring Checklist Component | **VERIFIED** |
+| **T-248** | Frontend BriefOpenQuestions & Ambiguity Flags Component | **VERIFIED** |
+| **T-249** | Frontend BriefSnapshot & Extracted Items with Evidence Links | **VERIFIED** |
+| **T-250** | Frontend BriefQAFindings Grounded Highlights Component | **VERIFIED** |
+| **T-251** | Frontend LawyerBriefView Main View & PDF Export Integration | **VERIFIED** |
+| **T-252** | DocumentWorkspace Tab Integration & SourceInspectorModal Deep-Linking | **VERIFIED** |
+| **T-253** | Brief Domain Models, Validation & Serializer Unit Tests | **VERIFIED** |
+| **T-254** | BriefService Orchestration & Non-Legal-Advice Rule Tests | **VERIFIED** |
+| **T-255** | Brief Security, Multi-Tenant Isolation & IDOR Tests | **VERIFIED** |
+| **T-256** | Standalone Golden Brief Evaluation Harness (run_brief_eval.py) & Scenario Suite | **VERIFIED** |
+| **T-257** | Phase 11 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
+
+---
 
 ## Status Legend
 - **NOT STARTED**: Task is waiting to be picked up.
 - **IN PROGRESS**: Task is currently being implemented.
 - **BLOCKED**: Task has unmet dependencies or failing verification.
 - **VERIFIED**: Task is completed, all automated and manual checks passed, and criteria verified.
+

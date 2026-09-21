@@ -114,3 +114,38 @@ class RawQAResult:
     general_information: str | None = None
     requires_professional_review: bool = False
     provider_info: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class BriefReasoningRequest:
+    """Input payload for a brief questions generation reasoning request."""
+
+    document_id: str
+    parties: list[dict[str, Any]] = field(default_factory=list)
+    clauses: list[dict[str, Any]] = field(default_factory=list)
+    obligations: list[dict[str, Any]] = field(default_factory=list)
+    dates: list[dict[str, Any]] = field(default_factory=list)
+    review_flags: list[dict[str, Any]] = field(default_factory=list)
+    qa_findings: list[dict[str, Any]] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class RawBriefQuestion:
+    """Single neutral question for a legal professional."""
+
+    question: str
+    category: str = "general"
+    rationale: str | None = None
+    related_clause_id: str | None = None
+
+
+@dataclass
+class RawBriefQuestionsResult:
+    """Structured question preparation output produced by a reasoning provider."""
+
+    questions: list[RawBriefQuestion] = field(default_factory=list)
+    facts_to_confirm: list[str] = field(default_factory=list)
+    documents_to_bring: list[str] = field(default_factory=list)
+    open_questions: list[str] = field(default_factory=list)
+    provider_info: dict[str, Any] = field(default_factory=dict)

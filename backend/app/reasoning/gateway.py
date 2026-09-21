@@ -4,7 +4,9 @@ from app.reasoning.deterministic_provider import (
     DeterministicStructuredExtractionProvider,
 )
 from app.reasoning.models import (
+    BriefReasoningRequest,
     QAReasoningRequest,
+    RawBriefQuestionsResult,
     RawExtractionResult,
     RawQAResult,
     ReasoningRequest,
@@ -49,6 +51,17 @@ class ReasoningGateway:
             self._provider.provider_name,
         )
         return self._provider.generate_grounded_answer(request)
+
+    def generate_brief_questions(
+        self, request: BriefReasoningRequest
+    ) -> RawBriefQuestionsResult:
+        """Route lawyer preparation brief reasoning request to configured provider."""
+        logger.info(
+            "Generating lawyer preparation brief questions for doc %s via provider %s",
+            request.document_id,
+            self._provider.provider_name,
+        )
+        return self._provider.generate_brief_questions(request)
 
 
 # Singleton gateway instance for default runtime

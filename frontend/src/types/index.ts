@@ -19,3 +19,4 @@ export * from "./evidence";
 export * from "./trust";
 export * from "./workspace";
 export * from "./qa";
+export * from "./brief";

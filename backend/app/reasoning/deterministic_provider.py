@@ -2,8 +2,11 @@ import re
 from datetime import datetime
 
 from app.reasoning.models import (
+    BriefReasoningRequest,
     QAReasoningRequest,
     RawAnswerClaim,
+    RawBriefQuestion,
+    RawBriefQuestionsResult,
     RawExtractedClause,
     RawExtractedDate,
     RawExtractedObligation,
@@ -1036,4 +1039,256 @@ class DeterministicStructuredExtractionProvider(ExtractionLLMProvider):
             ),
             requires_professional_review=is_advice_query,
             provider_info={"provider": self.provider_name, "status": "success"},
+        )
+
+    def generate_brief_questions(
+        self, request: BriefReasoningRequest
+    ) -> RawBriefQuestionsResult:
+        """Deterministically generate neutral preparation questions and checklists."""
+        questions: list[RawBriefQuestion] = []
+        facts_to_confirm: list[str] = []
+        documents_to_bring: list[str] = [
+            "Complete signed/executed agreement and all schedules or attachments",
+            "Any written amendments, modifications, or side letters",
+        ]
+        open_questions: list[str] = []
+
+        # 1. Questions from Review Flags
+        for flag in request.review_flags:
+            flag_type = flag.get("flag_type", "")
+            title = flag.get("title", "")
+            clause_id = flag.get("related_clause_identifier")
+
+            if flag_type == "restrictive_covenant":
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "What is the standard for enforceability and reasonable "
+                            "geographic/duration scope for this restrictive covenant "
+                            "under applicable governing law?"
+                        ),
+                        category="covenants",
+                        rationale=(
+                            "A restrictive covenant was identified in the document."
+                        ),
+                        related_clause_id=clause_id,
+                    )
+                )
+            elif flag_type == "renewal_lock_in":
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "What are the precise notice requirements and timing "
+                            "constraints to prevent unintended automatic renewal?"
+                        ),
+                        category="term_and_termination",
+                        rationale="An automatic renewal mechanism was identified.",
+                        related_clause_id=clause_id,
+                    )
+                )
+            elif flag_type == "unilateral_discretion":
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "How does the unilateral discretion provision operate in "
+                            "practice, and what limitations or implied duties apply to "
+                            "its exercise?"
+                        ),
+                        category="discretionary_rights",
+                        rationale=(
+                            "Unilateral discretion or modification language "
+                            "was identified."
+                        ),
+                        related_clause_id=clause_id,
+                    )
+                )
+            elif flag_type == "ambiguous_term":
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "How is the subjective standard or ambiguous terminology "
+                            "interpreted under governing legal precedents?"
+                        ),
+                        category="interpretation",
+                        rationale=(
+                            "Potentially subjective standards (e.g. 'best efforts') "
+                            "were identified."
+                        ),
+                        related_clause_id=clause_id,
+                    )
+                )
+            else:
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            f"What are the legal implications and recommended risk "
+                            f"mitigations regarding {title}?"
+                        ),
+                        category="general_review",
+                        rationale=f"Review area identified: {title}",
+                        related_clause_id=clause_id,
+                    )
+                )
+
+        # 2. Questions from Clauses
+        for clause in request.clauses:
+            cat = clause.get("category", "")
+            cid = clause.get("clause_identifier", "")
+            title = clause.get("title", "")
+
+            if cat == "liability" and not any(
+                q.category == "liability" for q in questions
+            ):
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "How does the limitation of liability interact with "
+                            "statutory remedies, and are there carve-outs for specific "
+                            "breaches?"
+                        ),
+                        category="liability",
+                        rationale=f"Liability terms present in {title or cid}.",
+                        related_clause_id=cid,
+                    )
+                )
+            elif cat == "indemnification" and not any(
+                q.category == "indemnification" for q in questions
+            ):
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "What defense obligations and notice procedures are "
+                            "triggered under the indemnification clause?"
+                        ),
+                        category="indemnification",
+                        rationale=(
+                            f"Indemnification provisions present in {title or cid}."
+                        ),
+                        related_clause_id=cid,
+                    )
+                )
+            elif cat == "dispute_resolution" and not any(
+                q.category == "dispute_resolution" for q in questions
+            ):
+                questions.append(
+                    RawBriefQuestion(
+                        question=(
+                            "What mandatory dispute escalation steps, arbitration "
+                            "rules, or venue selections apply before court litigation?"
+                        ),
+                        category="dispute_resolution",
+                        rationale=(
+                            f"Dispute resolution terms present in {title or cid}."
+                        ),
+                        related_clause_id=cid,
+                    )
+                )
+
+        # 3. Default questions if none generated
+        if not questions:
+            questions.append(
+                RawBriefQuestion(
+                    question=(
+                        "What key rights, obligations, and risk allocations in this "
+                        "agreement require particular attention under applicable law?"
+                    ),
+                    category="general",
+                    rationale="Baseline review inquiry for legal consultation.",
+                )
+            )
+            questions.append(
+                RawBriefQuestion(
+                    question=(
+                        "Are there any statutory requirements or implied covenants in "
+                        "this jurisdiction that modify the express terms of this "
+                        "agreement?"
+                    ),
+                    category="jurisdiction",
+                    rationale="Jurisdiction-specific verification inquiry.",
+                )
+            )
+
+        # 4. Facts to Confirm
+        if request.parties:
+            party_names = [p.get("name", "") for p in request.parties if p.get("name")]
+            if party_names:
+                joined_parties = ", ".join(party_names)
+                facts_to_confirm.append(
+                    f"Confirm full legal entity names and signing authority for: "
+                    f"{joined_parties}"
+                )
+
+        for d in request.dates:
+            dt = d.get("date_type", "")
+            raw = d.get("raw_text", "")
+            norm = d.get("normalized_date", "")
+            date_display = norm or raw
+            if dt == "effective_date":
+                facts_to_confirm.append(
+                    f"Verify actual effective date of agreement ({date_display})"
+                )
+            elif dt == "expiration_date":
+                facts_to_confirm.append(
+                    f"Verify contract term and expiration date ({date_display})"
+                )
+            elif dt == "renewal_deadline":
+                facts_to_confirm.append(
+                    f"Confirm advance notice cutoff date for renewal or "
+                    f"termination ({date_display})"
+                )
+
+        if not facts_to_confirm:
+            facts_to_confirm.append(
+                "Confirm all party identities, signing dates, and execution status"
+            )
+
+        # 5. Documents to Bring
+        if any(clause.get("category") == "payment" for clause in request.clauses):
+            documents_to_bring.append(
+                "Recent invoices, payment receipts, or fee schedules"
+            )
+        if any(
+            clause.get("category") == "dispute_resolution" for clause in request.clauses
+        ):
+            documents_to_bring.append(
+                "Relevant correspondence or notices exchanged between parties"
+            )
+        if request.review_flags:
+            documents_to_bring.append(
+                "Records of any discussions or negotiations relating to "
+                "identified review areas"
+            )
+
+        # 6. Open Questions
+        if not any(c.get("category") == "dispute_resolution" for c in request.clauses):
+            open_questions.append(
+                "Which state or jurisdiction's law governs if not expressly stated?"
+            )
+        if not any(c.get("category") == "termination" for c in request.clauses):
+            open_questions.append(
+                "What are the default termination rights and notice periods?"
+            )
+        if request.qa_findings:
+            for qaf in request.qa_findings:
+                if qaf.get("requires_professional_review"):
+                    open_questions.append(
+                        f"Unresolved inquiry from analysis: {qaf.get('question', '')}"
+                    )
+
+        if not open_questions:
+            open_questions.append(
+                "Are there any standard industry addenda or disclosures customarily "
+                "attached to this type of agreement?"
+            )
+
+        return RawBriefQuestionsResult(
+            questions=questions,
+            facts_to_confirm=facts_to_confirm,
+            documents_to_bring=documents_to_bring,
+            open_questions=open_questions,
+            provider_info={
+                "provider": self.provider_name,
+                "type": "deterministic",
+                "questions_generated": len(questions),
+            },
         )

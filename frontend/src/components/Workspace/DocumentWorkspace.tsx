@@ -26,6 +26,7 @@ import { SourceInspectorModal } from "./SourceInspectorModal";
 import { EvidenceViewer } from "../Documents/EvidenceViewer";
 import { TrustSafetyViewer } from "../Documents/TrustSafetyViewer";
 import { QAView } from "../QA/QAView";
+import { LawyerBriefView } from "../Brief";
 
 interface DocumentWorkspaceProps {
   documentId: string;
@@ -159,6 +160,7 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
       count: understanding?.review_flags.length,
     },
     { id: "qa", label: "Grounded Q&A" },
+    { id: "brief", label: "Lawyer Brief" },
     { id: "evidence", label: "Evidence" },
     { id: "trust", label: "Trust & Safety" },
   ];
@@ -262,6 +264,21 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
               evidenceReport={evidenceReport}
               trustReport={trustReport}
               onSelectTab={setActiveTab}
+            />
+          </div>
+        )}
+
+        {activeTab === "brief" && (
+          <div
+            role="tabpanel"
+            id="panel-brief"
+            aria-labelledby="tab-brief"
+            tabIndex={0}
+          >
+            <LawyerBriefView
+              documentId={document.id}
+              documentFilename={document.filename}
+              onInspect={setInspectTarget}
             />
           </div>
         )}
