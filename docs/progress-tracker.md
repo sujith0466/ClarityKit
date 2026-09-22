@@ -564,6 +564,41 @@ Status: **VERIFIED**
 | **T-311** | Frontend Vitest Component & Interaction Test Suite for Comparison | **VERIFIED** |
 | **T-312** | Phase 13 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
 
+### Phase 14: Advanced / Optional Capabilities (Version Diff & Deadline Timeline)
+
+Status: **VERIFIED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-313** | Version Diff & Timeline Architecture Decision Record (ADR-0013) | **VERIFIED** |
+| **T-314** | Version Diff & Timeline Database Migration (0009_version_diff_and_timeline.sql) | **VERIFIED** |
+| **T-315** | Version Diff Domain Models & Typed Contracts (DocumentVersionDiff, VersionDiffFinding, VersionDiffSummary) | **VERIFIED** |
+| **T-316** | Version Diff Input Validation & Status Verification Engine ($V_1 \ne V_2$, Ready status, Multi-Tenant) | **VERIFIED** |
+| **T-317** | Deterministic Version Diff Alignment & Text Comparison Engine | **VERIFIED** |
+| **T-318** | Version Diff Classification Taxonomy (ADDED, REMOVED, MODIFIED, UNCHANGED, POTENTIAL_CHANGE, UNRESOLVED) | **VERIFIED** |
+| **T-319** | Version Diff Summary Metrics & Change Breakdown Calculator | **VERIFIED** |
+| **T-320** | Authoritative Phase 7 Evidence Citation Verification for Version Diff Findings | **VERIFIED** |
+| **T-321** | Version Diff Repository Layer (PostgreSQL & In-Memory with Multi-Tenant Isolation) | **VERIFIED** |
+| **T-322** | Version Diff Coordinator Service (VersionDiffService) Implementation | **VERIFIED** |
+| **T-323** | REST API Endpoints for Version Diff (/api/version-diffs CRUD) | **VERIFIED** |
+| **T-324** | Version Diff Domain Models, Diff Engine & Service Unit Tests | **VERIFIED** |
+| **T-325** | Timeline Domain Models & Enums (TimelineItem, TimelineSummary, DocumentTimeline, TimelineDateType, TimelineItemStatus) | **VERIFIED** |
+| **T-326** | Deterministic Timeline Synthesis & Chronological Ordering Engine | **VERIFIED** |
+| **T-327** | Timeline Date Derivation & Relative Offset Calculation (EXPLICIT_FACT vs DERIVED with inputs_used) | **VERIFIED** |
+| **T-328** | Timeline Missing/Unanchored Date Fallback to UNRESOLVED_TRIGGER & REVIEW_REQUIRED | **VERIFIED** |
+| **T-329** | Authoritative Phase 7 Evidence Citation Verification for Timeline Items | **VERIFIED** |
+| **T-330** | Timeline Repository Layer (PostgreSQL & In-Memory with Multi-Tenant Isolation) | **VERIFIED** |
+| **T-331** | Timeline Coordinator Service (TimelineService) Implementation | **VERIFIED** |
+| **T-332** | REST API Endpoints for Timeline (/api/documents/<id>/timeline & /api/timelines CRUD) | **VERIFIED** |
+| **T-333** | Timeline Domain Models, Engine & Service Unit Tests | **VERIFIED** |
+| **T-334** | Multi-Tenant Isolation, Cascading Cleanup & Security Regression Tests for Phase 14 | **VERIFIED** |
+| **T-335** | Frontend TypeScript Definitions for Version Diff & Timeline | **VERIFIED** |
+| **T-336** | Frontend VersionDiff Workspace, Selector, Overview & Side-by-Side/Unified Diff Cards | **VERIFIED** |
+| **T-337** | Frontend Timeline Workspace, Overview & Timeline Item Cards with Evidence Linking | **VERIFIED** |
+| **T-338** | Frontend Component & Interaction Test Suite for Version Diff & Timeline | **VERIFIED** |
+| **T-339** | Standalone Phase 14 Evaluation Harness (run_phase14_eval.py) & Scenario Suite | **VERIFIED** |
+| **T-340** | Phase 14 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
+
 ---
 
 ## Status Legend
@@ -571,5 +606,6 @@ Status: **VERIFIED**
 - **IN PROGRESS**: Task is currently being implemented.
 - **BLOCKED**: Task has unmet dependencies or failing verification.
 - **VERIFIED**: Task is completed, all automated and manual checks passed, and criteria verified.
+
 
 

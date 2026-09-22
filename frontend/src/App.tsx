@@ -7,6 +7,8 @@ import { LoginForm } from "./components/Auth/LoginForm";
 import { RegisterForm } from "./components/Auth/RegisterForm";
 import { DocumentsManager } from "./components/Documents/DocumentsManager";
 import { ComparisonWorkspace } from "./components/Comparison/ComparisonWorkspace";
+import { VersionDiffWorkspace } from "./components/VersionDiff/VersionDiffWorkspace";
+import { TimelineWorkspace } from "./components/Timeline/TimelineWorkspace";
 import "./App.css";
 
 const AuthSection: React.FC = () => {
@@ -66,9 +68,9 @@ const AuthSection: React.FC = () => {
 
 export const AppContent: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [activeNav, setActiveNav] = useState<"documents" | "comparison">(
-    "documents"
-  );
+  const [activeNav, setActiveNav] = useState<
+    "documents" | "comparison" | "version-diff" | "timeline"
+  >("documents");
 
   return (
     <ErrorBoundary>
@@ -112,14 +114,33 @@ export const AppContent: React.FC = () => {
             >
               ⚖️ Multi-Document Comparison
             </button>
+            <button
+              type="button"
+              className={`nav-tab-btn ${activeNav === "version-diff" ? "active" : ""}`}
+              onClick={() => setActiveNav("version-diff")}
+              aria-current={activeNav === "version-diff" ? "page" : undefined}
+            >
+              🔀 Document Version Diff
+            </button>
+            <button
+              type="button"
+              className={`nav-tab-btn ${activeNav === "timeline" ? "active" : ""}`}
+              onClick={() => setActiveNav("timeline")}
+              aria-current={activeNav === "timeline" ? "page" : undefined}
+            >
+              ⏱️ Deadline &amp; Timeline
+            </button>
           </nav>
         )}
 
-        {activeNav === "comparison" && isAuthenticated ? (
+        {isAuthenticated && activeNav === "comparison" && (
           <ComparisonWorkspace />
-        ) : (
-          <DocumentsManager />
         )}
+        {isAuthenticated && activeNav === "version-diff" && (
+          <VersionDiffWorkspace />
+        )}
+        {isAuthenticated && activeNav === "timeline" && <TimelineWorkspace />}
+        {isAuthenticated && activeNav === "documents" && <DocumentsManager />}
       </MainLayout>
     </ErrorBoundary>
   );

@@ -15,7 +15,9 @@ from app.routes.extraction import extraction_bp
 from app.routes.health import health_bp
 from app.routes.qa import qa_bp
 from app.routes.retrieval import retrieval_bp
+from app.routes.timeline import timeline_bp
 from app.routes.trust import trust_bp
+from app.routes.version_diff import version_diff_bp
 
 # Load .env if present
 load_dotenv()
@@ -54,5 +56,7 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(qa_bp)
     app.register_blueprint(brief_bp)
     app.register_blueprint(comparison_bp)
+    app.register_blueprint(version_diff_bp)
+    app.register_blueprint(timeline_bp)
 
     return app
