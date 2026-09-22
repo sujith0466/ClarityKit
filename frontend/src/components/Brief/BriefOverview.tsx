@@ -62,9 +62,11 @@ export const BriefOverview: React.FC<BriefOverviewProps> = ({
         <div
           className="brief-completeness-bar"
           role="progressbar"
+          aria-label="Brief completeness score"
           aria-valuenow={completenessPct}
           aria-valuemin={0}
           aria-valuemax={100}
+          aria-valuetext={`${completenessPct}% complete`}
         >
           <div
             className="brief-completeness-fill"

@@ -217,7 +217,7 @@ export const EvidenceViewer: React.FC<EvidenceViewerProps> = ({
       {/* Claims List */}
       <div
         className="evidence-claims-list"
-        role="feed"
+        role="region"
         aria-label="Claims and Evidence List"
       >
         {filteredClaims.length === 0 ? (

@@ -97,7 +97,7 @@ describe("EvidenceViewer Component", () => {
       />
     );
 
-    expect(screen.getAllByRole("feed")[0]).toBeInTheDocument();
+    expect(screen.getByTestId("evidence-viewer")).toBeInTheDocument();
     expect(screen.getByTestId("claim-card-claim-1")).toBeInTheDocument();
     expect(screen.getByTestId("claim-card-claim-2")).toBeInTheDocument();
     expect(screen.getByTestId("claim-card-claim-3")).toBeInTheDocument();

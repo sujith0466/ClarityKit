@@ -223,8 +223,13 @@ export const QAView: React.FC<QAViewProps> = ({
               <AnswerCard key={msg.id} message={msg} onInspect={onInspect} />
             ))}
             {isAsking && (
-              <div className="qa-thinking-indicator" data-testid="qa-thinking">
-                <div className="spinner-sm" />
+              <div
+                className="qa-thinking-indicator"
+                role="status"
+                aria-live="polite"
+                data-testid="qa-thinking"
+              >
+                <div className="spinner-sm" aria-hidden="true" />
                 <span>
                   Searching document chunks and validating evidence...
                 </span>

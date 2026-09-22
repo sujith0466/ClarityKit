@@ -57,6 +57,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
 
       {error && (
         <div
+          id="login-error-banner"
           className="auth-error-banner"
           role="alert"
           aria-live="assertive"
@@ -77,6 +78,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           required
           autoComplete="email"
           disabled={isSubmitting}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "login-error-banner" : undefined}
         />
       </div>
 
@@ -91,6 +94,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           required
           autoComplete="current-password"
           disabled={isSubmitting}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "login-error-banner" : undefined}
         />
       </div>
 

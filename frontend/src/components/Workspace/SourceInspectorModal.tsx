@@ -15,21 +15,51 @@ export const SourceInspectorModal: React.FC<SourceInspectorModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const pageNum = target.pageNumber || target.pageStart || 1;
   const pageRecord = pages.find((p) => p.page_number === pageNum);
 
   useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
     closeBtnRef.current?.focus();
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         onClose();
+        return;
+      }
+
+      if (e.key === "Tab" && modalRef.current) {
+        const focusableElements =
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+        if (focusableElements.length === 0) return;
+
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      previousFocusRef.current?.focus();
+    };
   }, [onClose]);
 
   const renderHighlightedPageText = (fullText: string, span: string) => {
@@ -74,6 +104,11 @@ export const SourceInspectorModal: React.FC<SourceInspectorModalProps> = ({
       aria-modal="true"
       aria-labelledby="source-inspector-title"
       data-testid="source-inspector-modal"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
       <div className="modal-container source-inspector-dialog" ref={modalRef}>
         <div className="modal-header">

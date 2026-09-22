@@ -67,6 +67,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
 
       {error && (
         <div
+          id="register-error-banner"
           className="auth-error-banner"
           role="alert"
           aria-live="assertive"
@@ -87,6 +88,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           required
           autoComplete="name"
           disabled={isSubmitting}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "register-error-banner" : undefined}
         />
       </div>
 
@@ -101,6 +104,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           required
           autoComplete="email"
           disabled={isSubmitting}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? "register-error-banner" : undefined}
         />
       </div>
 
@@ -115,8 +120,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
           required
           autoComplete="new-password"
           disabled={isSubmitting}
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error
+              ? "register-error-banner register-pwd-hint"
+              : "register-pwd-hint"
+          }
         />
-        <small className="form-hint">
+        <small id="register-pwd-hint" className="form-hint">
           Must be at least 8 characters with letters and numbers.
         </small>
       </div>

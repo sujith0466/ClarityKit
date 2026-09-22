@@ -495,6 +495,40 @@ Status: **VERIFIED**
 | **T-256** | Standalone Golden Brief Evaluation Harness (run_brief_eval.py) & Scenario Suite | **VERIFIED** |
 | **T-257** | Phase 11 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
 
+### Phase 12: Accessibility & Accessibility Certification
+
+Status: **VERIFIED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-258** | Comprehensive Frontend Accessibility Baseline Audit | **VERIFIED** |
+| **T-259** | Semantic HTML & Native Landmark Hierarchy Hardening (banner, main, contentinfo) | **VERIFIED** |
+| **T-260** | Universal Keyboard Navigation & Trap Elimination | **VERIFIED** |
+| **T-261** | Focus Management, Visibility (:focus-visible) & Focus Restoration Engine | **VERIFIED** |
+| **T-262** | Screen Reader Accessibility, Accessible Names & Decorative Icon Suppression | **VERIFIED** |
+| **T-263** | Accessible Document Workspace Tablist & Arrow Key Navigation | **VERIFIED** |
+| **T-264** | Modal Dialog Accessibility & Active Focus Containment in SourceInspectorModal | **VERIFIED** |
+| **T-265** | Accessible Forms, Label Association & Validation Error Links (Auth & Upload) | **VERIFIED** |
+| **T-266** | Non-Disruptive Dynamic Updates & ARIA Live Regions (Upload & Q&A) | **VERIFIED** |
+| **T-267** | WCAG 2.1 AA Color Contrast & Color-Independent Status Badges | **VERIFIED** |
+| **T-268** | Reduced Motion Support (@media prefers-reduced-motion: reduce) | **VERIFIED** |
+| **T-269** | Responsive Zoom (200%-400%) & Reflow Layout Adaptability | **VERIFIED** |
+| **T-270** | Document & Evidence Viewer Textual Relationship Accessibility | **VERIFIED** |
+| **T-271** | Trust & Safety Visual/Textual Taxonomy Accessibility | **VERIFIED** |
+| **T-272** | Grounded Q&A Interface & Citation Badge Accessibility | **VERIFIED** |
+| **T-273** | Lawyer-Preparation Brief, Completeness Meter & Export Accessibility | **VERIFIED** |
+| **T-274** | Standardized Accessible Error & Status Notification System | **VERIFIED** |
+| **T-275** | Automated Accessibility Test Infrastructure (axe-core + Testing Library) | **VERIFIED** |
+| **T-276** | Automated Keyboard Navigation & Focus Regression Test Suite | **VERIFIED** |
+| **T-277** | Static Accessibility Semantics Audit & ARIA Attribute Validation | **VERIFIED** |
+| **T-278** | Manual Accessibility Verification Checklist (docs/accessibility-checklist.md) | **VERIFIED** |
+| **T-279** | Standalone Accessibility Certification Evaluation Harness (run_accessibility_eval.py) | **VERIFIED** |
+| **T-280** | Accessibility Architecture Decision Record (ADR-0011) & Documentation | **VERIFIED** |
+| **T-281** | Security Regression & Untrusted Text ARIA Injection Tests | **VERIFIED** |
+| **T-282** | Frozen Phase 0–11 Invariant & Architecture Integrity Verification | **VERIFIED** |
+| **T-283** | Full Quality Gates Execution (Ruff, Mypy, Pytest, Prettier, ESLint, Vitest, Build) | **VERIFIED** |
+| **T-284** | Final Phase 12 Accessibility Review & Verification Signoff | **VERIFIED** |
+
 ---
 
 ## Status Legend

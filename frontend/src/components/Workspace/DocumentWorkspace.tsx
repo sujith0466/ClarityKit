@@ -251,7 +251,10 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
         })}
       </nav>
 
-      <main className="workspace-tab-content">
+      <section
+        className="workspace-tab-content"
+        aria-label="Document View Content"
+      >
         {activeTab === "overview" && (
           <div
             role="tabpanel"
@@ -422,7 +425,7 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({
             )}
           </div>
         )}
-      </main>
+      </section>
 
       {inspectTarget && (
         <SourceInspectorModal
