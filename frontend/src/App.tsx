@@ -6,6 +6,7 @@ import { useAuth } from "./context/useAuth";
 import { LoginForm } from "./components/Auth/LoginForm";
 import { RegisterForm } from "./components/Auth/RegisterForm";
 import { DocumentsManager } from "./components/Documents/DocumentsManager";
+import { ComparisonWorkspace } from "./components/Comparison/ComparisonWorkspace";
 import "./App.css";
 
 const AuthSection: React.FC = () => {
@@ -64,6 +65,11 @@ const AuthSection: React.FC = () => {
 };
 
 export const AppContent: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  const [activeNav, setActiveNav] = useState<"documents" | "comparison">(
+    "documents"
+  );
+
   return (
     <ErrorBoundary>
       <MainLayout>
@@ -84,7 +90,36 @@ export const AppContent: React.FC = () => {
         </section>
 
         <AuthSection />
-        <DocumentsManager />
+
+        {isAuthenticated && (
+          <nav
+            className="workspace-main-nav"
+            aria-label="Main Application Navigation"
+          >
+            <button
+              type="button"
+              className={`nav-tab-btn ${activeNav === "documents" ? "active" : ""}`}
+              onClick={() => setActiveNav("documents")}
+              aria-current={activeNav === "documents" ? "page" : undefined}
+            >
+              📄 Documents &amp; Workspace
+            </button>
+            <button
+              type="button"
+              className={`nav-tab-btn ${activeNav === "comparison" ? "active" : ""}`}
+              onClick={() => setActiveNav("comparison")}
+              aria-current={activeNav === "comparison" ? "page" : undefined}
+            >
+              ⚖️ Multi-Document Comparison
+            </button>
+          </nav>
+        )}
+
+        {activeNav === "comparison" && isAuthenticated ? (
+          <ComparisonWorkspace />
+        ) : (
+          <DocumentsManager />
+        )}
       </MainLayout>
     </ErrorBoundary>
   );

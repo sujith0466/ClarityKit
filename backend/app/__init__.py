@@ -8,6 +8,7 @@ from app.config import Config, DevelopmentConfig, ProductionConfig, TestingConfi
 from app.errors import register_error_handlers
 from app.routes.auth import auth_bp
 from app.routes.brief import brief_bp
+from app.routes.comparison import comparison_bp
 from app.routes.documents import documents_bp
 from app.routes.evidence import evidence_bp
 from app.routes.extraction import extraction_bp
@@ -52,5 +53,6 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(trust_bp)
     app.register_blueprint(qa_bp)
     app.register_blueprint(brief_bp)
+    app.register_blueprint(comparison_bp)
 
     return app

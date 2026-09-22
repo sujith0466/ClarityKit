@@ -529,6 +529,41 @@ Status: **VERIFIED**
 | **T-283** | Full Quality Gates Execution (Ruff, Mypy, Pytest, Prettier, ESLint, Vitest, Build) | **VERIFIED** |
 | **T-284** | Final Phase 12 Accessibility Review & Verification Signoff | **VERIFIED** |
 
+### Phase 13: Multi-Document Comparison & Consistency Analysis
+
+Status: **VERIFIED**
+
+| Task ID | Task Description | Status |
+| :--- | :--- | :--- |
+| **T-285** | Multi-Document Comparison Architecture Decision Record (ADR-0012) | **VERIFIED** |
+| **T-286** | Comparison Domain Models & Typed Contracts (DocumentComparison, ComparisonFinding, ComparisonSummary) | **VERIFIED** |
+| **T-287** | Comparison Category & Difference Classification Taxonomy Definition | **VERIFIED** |
+| **T-288** | Comparison Database Migration (0008_document_comparisons.sql) | **VERIFIED** |
+| **T-289** | PostgreSQL & In-Memory Comparison Repository Layer with Multi-Tenant Isolation | **VERIFIED** |
+| **T-290** | Multi-Document Input Bounds (2-5 docs) & Status Validation Engine | **VERIFIED** |
+| **T-291** | Cross-Tenant Ownership & IDOR Comparison Security Guardrails | **VERIFIED** |
+| **T-292** | Phase 6 Structured Extraction Ingestion & Normalization across Document Sets | **VERIFIED** |
+| **T-293** | Deterministic Party Matching & Role Difference Alignment Engine | **VERIFIED** |
+| **T-294** | Deterministic Date & Temporal Milestone Inconsistency Engine | **VERIFIED** |
+| **T-295** | Deterministic Notice Period & Obligation Difference Engine | **VERIFIED** |
+| **T-296** | Deterministic Standard Clause Categorical Alignment Engine | **VERIFIED** |
+| **T-297** | Asymmetric Provision & PRESENT_IN_ONE_ONLY Non-Definitive Safe Phrasing Engine | **VERIFIED** |
+| **T-298** | Neutral Lawyer Consultation Question Generator for Inconsistencies | **VERIFIED** |
+| **T-299** | Phase 7 Mechanical Evidence Citation Verification for All Comparison Findings | **VERIFIED** |
+| **T-300** | Comparison Summary Metrics & Category Breakdown Calculator | **VERIFIED** |
+| **T-301** | Multi-Document Comparison Coordinator Service (ComparisonService) Implementation | **VERIFIED** |
+| **T-302** | REST API Endpoints for Comparison (/api/comparisons CRUD) | **VERIFIED** |
+| **T-303** | Comparison Models, Matcher & Validation Unit Test Suite | **VERIFIED** |
+| **T-304** | Comparison Multi-Tenant Security, Cascading Deletion & IDOR Tests | **VERIFIED** |
+| **T-305** | Standalone Multi-Document Comparison Golden Evaluation Harness (run_comparison_eval.py) | **VERIFIED** |
+| **T-306** | Frontend TypeScript Definitions for Multi-Document Comparison | **VERIFIED** |
+| **T-307** | Frontend ComparisonSelector Component (2-5 Ready Document Selector) | **VERIFIED** |
+| **T-308** | Frontend ComparisonOverview & Metrics Summary Component | **VERIFIED** |
+| **T-309** | Frontend SideBySideFindingCard Component with Source Inspector Deep-Linking | **VERIFIED** |
+| **T-310** | Frontend ComparisonWorkspace View & Navigation Integration | **VERIFIED** |
+| **T-311** | Frontend Vitest Component & Interaction Test Suite for Comparison | **VERIFIED** |
+| **T-312** | Phase 13 Quality Gates, Progress Tracker & Pre-Checkpoint Review | **VERIFIED** |
+
 ---
 
 ## Status Legend
@@ -536,4 +571,5 @@ Status: **VERIFIED**
 - **IN PROGRESS**: Task is currently being implemented.
 - **BLOCKED**: Task has unmet dependencies or failing verification.
 - **VERIFIED**: Task is completed, all automated and manual checks passed, and criteria verified.
+
 
